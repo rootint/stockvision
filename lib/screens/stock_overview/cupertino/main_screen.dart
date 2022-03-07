@@ -11,6 +11,7 @@ import 'package:stockadvisor/models/yahoo_models/meta_data.dart';
 import 'package:stockadvisor/models/yahoo_models/price_data.dart';
 import 'package:stockadvisor/painters/graph_painter.dart';
 import 'package:stockadvisor/providers/cache_provider.dart';
+import 'package:stockadvisor/providers/data_provider.dart';
 import 'package:stockadvisor/screens/stock_overview/cupertino/bottom_row.dart';
 
 class CupertinoStockOverviewScreen extends StatefulWidget {
@@ -131,19 +132,7 @@ class _CupertinoStockOverviewScreenState
     final ticker = routeArgs['ticker']! as String;
     // final priceStream =
     //     routeArgs['priceStream'] as Stream<YahooHelperPriceData>;
-    final data = routeArgs['data'] as YahooHelperPriceData;
-    cachedPrice = data;
-    final price = cachedPrice!.lastClosePrice;
-    final prePostPrice = cachedPrice!.currentMarketPrice;
-    final percentage = cachedPrice!.lastPercentage;
-    final prePostPercentage = cachedPrice!.currentPercentage;
-    final priceDelta = price * (percentage / 100);
-    final prePostPriceDelta = prePostPrice * (prePostPercentage / 100);
-    final marketState = cachedPrice!.marketState;
-    if (periodPercentage == 0.0) {
-      periodPercentage = percentage;
-      periodPriceDelta = priceDelta;
-    }
+    // final data = routeArgs['data'] as YahooHelperPriceData;
     if (!areStreamsInitialized) {
       // priceController = TickerStreams.priceStreamController(ticker: ticker);
       chartController = TickerStreams.chartStreamController(
@@ -248,98 +237,120 @@ class _CupertinoStockOverviewScreenState
                                   ),
                                 ),
                               ),
-                              Flexible(
-                                flex: 2,
-                                fit: FlexFit.tight,
-                                child: Padding(
-                                  padding: EdgeInsets.only(
-                                      top: mediaQuery.devicePixelRatio),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      Column(
-                                        children: [
-                                          Text(
-                                            price.toStringAsFixed(2),
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 13 *
-                                                  mediaQuery.devicePixelRatio,
-                                            ),
-                                          ),
-                                          Text(
-                                              (periodPercentage > 0
-                                                      ? '+'
-                                                      : '') +
-                                                  '${periodPriceDelta.toStringAsFixed(2)} / ' +
-                                                  (periodPercentage > 0
-                                                      ? '+'
-                                                      : '') +
-                                                  '${periodPercentage.toStringAsFixed(2)}%',
+                              Consumer<DataProvider>(
+                                  builder: (context, provider, _) {
+                                var data = provider.getPriceData(ticker: ticker);
+                                cachedPrice = data;
+                                final price = cachedPrice!.lastClosePrice;
+                                final prePostPrice =
+                                    cachedPrice!.currentMarketPrice;
+                                final percentage = cachedPrice!.lastPercentage;
+                                final prePostPercentage =
+                                    cachedPrice!.currentPercentage;
+                                final priceDelta = price * (percentage / 100);
+                                final prePostPriceDelta =
+                                    prePostPrice * (prePostPercentage / 100);
+                                final marketState = cachedPrice!.marketState;
+                                if (periodPercentage == 0.0) {
+                                  periodPercentage = percentage;
+                                  periodPriceDelta = priceDelta;
+                                }
+                                return Flexible(
+                                  flex: 2,
+                                  fit: FlexFit.tight,
+                                  child: Padding(
+                                    padding: EdgeInsets.only(
+                                        top: mediaQuery.devicePixelRatio),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        Column(
+                                          children: [
+                                            Text(
+                                              price.toStringAsFixed(2),
                                               style: TextStyle(
-                                                  color: getColorByPercentage(
-                                                      periodPercentage),
-                                                  fontSize: 6 *
-                                                      mediaQuery
-                                                          .devicePixelRatio,
-                                                  fontWeight: FontWeight.w500)),
-                                        ],
-                                      ),
-                                      marketState != 'REGULAR' && showExtended
-                                          ? Padding(
-                                              padding: EdgeInsets.only(
-                                                  top: mediaQuery
-                                                          .devicePixelRatio *
-                                                      2.5),
-                                              child: Column(
-                                                children: [
-                                                  Text(
-                                                    '${marketStateConversionMap[marketState]} ${prePostPrice.toStringAsFixed(2)} ',
-                                                    style: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.w400,
-                                                      fontSize: 6 *
-                                                          mediaQuery
-                                                              .devicePixelRatio,
-                                                      color: CupertinoColors
-                                                          .white
-                                                          .withOpacity(0.95),
-                                                    ),
-                                                  ),
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                            top: 1),
-                                                    child: Text(
-                                                      (prePostPercentage > 0
-                                                              ? '+'
-                                                              : '') +
-                                                          '${prePostPriceDelta.toStringAsFixed(2)} / ' +
-                                                          (prePostPercentage > 0
-                                                              ? '+'
-                                                              : '') +
-                                                          '${prePostPercentage.toStringAsFixed(2)}%',
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 13 *
+                                                    mediaQuery.devicePixelRatio,
+                                              ),
+                                            ),
+                                            Text(
+                                                (periodPercentage > 0
+                                                        ? '+'
+                                                        : '') +
+                                                    '${periodPriceDelta.toStringAsFixed(2)} / ' +
+                                                    (periodPercentage > 0
+                                                        ? '+'
+                                                        : '') +
+                                                    '${periodPercentage.toStringAsFixed(2)}%',
+                                                style: TextStyle(
+                                                    color: getColorByPercentage(
+                                                        periodPercentage),
+                                                    fontSize: 6 *
+                                                        mediaQuery
+                                                            .devicePixelRatio,
+                                                    fontWeight:
+                                                        FontWeight.w500)),
+                                          ],
+                                        ),
+                                        marketState != 'REGULAR' && showExtended
+                                            ? Padding(
+                                                padding: EdgeInsets.only(
+                                                    top: mediaQuery
+                                                            .devicePixelRatio *
+                                                        2.5),
+                                                child: Column(
+                                                  children: [
+                                                    Text(
+                                                      '${marketStateConversionMap[marketState]} ${prePostPrice.toStringAsFixed(2)} ',
                                                       style: TextStyle(
-                                                        color: getColorByPercentage(
-                                                                prePostPercentage)
-                                                            .withOpacity(0.95),
-                                                        fontSize: 5 *
-                                                            mediaQuery
-                                                                .devicePixelRatio,
                                                         fontWeight:
                                                             FontWeight.w400,
+                                                        fontSize: 6 *
+                                                            mediaQuery
+                                                                .devicePixelRatio,
+                                                        color: CupertinoColors
+                                                            .white
+                                                            .withOpacity(0.95),
                                                       ),
                                                     ),
-                                                  ),
-                                                ],
-                                              ),
-                                            )
-                                          : Container(),
-                                    ],
+                                                    Padding(
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                              top: 1),
+                                                      child: Text(
+                                                        (prePostPercentage > 0
+                                                                ? '+'
+                                                                : '') +
+                                                            '${prePostPriceDelta.toStringAsFixed(2)} / ' +
+                                                            (prePostPercentage >
+                                                                    0
+                                                                ? '+'
+                                                                : '') +
+                                                            '${prePostPercentage.toStringAsFixed(2)}%',
+                                                        style: TextStyle(
+                                                          color: getColorByPercentage(
+                                                                  prePostPercentage)
+                                                              .withOpacity(
+                                                                  0.95),
+                                                          fontSize: 5 *
+                                                              mediaQuery
+                                                                  .devicePixelRatio,
+                                                          fontWeight:
+                                                              FontWeight.w400,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              )
+                                            : Container(),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              ),
+                                );
+                              }),
                               Flexible(
                                 flex: 4,
                                 fit: FlexFit.tight,
@@ -471,7 +482,7 @@ class _CupertinoStockOverviewScreenState
                                 flex: 2,
                                 fit: FlexFit.tight,
                                 child: CupertinoStockOverviewBottomRow(
-                                  priceStream: priceStream,
+                                  // priceStream: priceStream,
                                   ticker: ticker,
                                   cache: cachedPrice,
                                 ),

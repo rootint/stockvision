@@ -1,15 +1,17 @@
 import 'package:flutter/cupertino.dart';
+import 'package:provider/provider.dart';
 import 'package:stockadvisor/constants.dart';
 import 'package:stockadvisor/models/yahoo_models/price_data.dart';
+import 'package:stockadvisor/providers/data_provider.dart';
 
 class CupertinoStockOverviewBottomRow extends StatelessWidget {
   final String ticker;
-  final Stream<YahooHelperPriceData> priceStream;
+  // final Stream<YahooHelperPriceData> priceStream;
   final YahooHelperPriceData? cache;
 
   const CupertinoStockOverviewBottomRow({
     required this.ticker,
-    required this.priceStream,
+    // required this.priceStream,
     required this.cache,
     Key? key,
   }) : super(key: key);
@@ -43,14 +45,9 @@ class CupertinoStockOverviewBottomRow extends StatelessWidget {
                   borderRadius: BorderRadius.circular(15),
                   child: Container(
                     color: CupertinoColors.darkBackgroundGray,
-                    child: StreamBuilder<YahooHelperPriceData>(
-                      initialData: cache,
-                      stream: priceStream,
-                      builder: (context, snapshot) {
-                        if (snapshot.data == null) {
-                          return const CupertinoActivityIndicator();
-                        }
-                        final data = snapshot.data!;
+                    child: Consumer<DataProvider>(
+                      builder: (context, provider, _) {
+                        var data = provider.getPriceData(ticker: ticker);
                         return Padding(
                           padding: leftCardPadding,
                           child: Column(

@@ -29,7 +29,7 @@ class TickerStreams {
       if (timer == null) {
         tick();
       }
-      timer = Timer.periodic(const Duration(seconds: 1), (_) => tick());
+      timer = Timer.periodic(const Duration(milliseconds: 1200), (_) => tick());
     }
 
     void stop() {
@@ -42,7 +42,7 @@ class TickerStreams {
       onCancel: stop,
     );
 
-    return controller;
+    return controller;  
   }
 
   static StreamController<YahooHelperChartData> chartStreamController({

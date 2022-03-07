@@ -37,7 +37,7 @@ class DataProvider extends ChangeNotifier {
       _priceData[ticker] = {};
     }
     _priceData[ticker]!['price'] = data;
-    print(data.currentMarketPrice);
+    // print(data.currentMarketPrice);
     notifyListeners();
   }
 
