@@ -32,6 +32,7 @@ class _CupertinoStockOverviewMainRowState
   Map<String, YahooHelperChartData> chartCache = {};
   bool showExtended = true;
   bool areStreamsInitialized = false;
+  bool startAnimation = false;
 
   late StreamController<YahooHelperChartData> chartController;
 
@@ -58,7 +59,7 @@ class _CupertinoStockOverviewMainRowState
       chartController = TickerStreams.chartStreamController(
           ticker: ticker, range: rangeConversionMap[timeframe]!);
       showExtended = (selectedTimeframe == '1D');
-      showGraphAnimation = true;
+      // showGraphAnimation = true;
       graphAnimationController.reset();
     });
   }
@@ -154,35 +155,37 @@ class _CupertinoStockOverviewMainRowState
                     fontSize: 14,
                     fontWeight: FontWeight.bold),
               ),
-              Padding(
-                padding: const EdgeInsets.only(top: 2.0),
-                child: RichText(
-                  text: TextSpan(
-                    text: marketStateConversionMap[
-                            widget.priceData.marketState]! +
-                        ' ',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
-                    children: <TextSpan>[
-                      TextSpan(
-                        text: (currentPriceDelta > 0 ? '+' : '') +
-                            '${currentPriceDelta.toStringAsFixed(2)} / ' +
-                            (currentPercentage > 0 ? '+' : '') +
-                            '${currentPercentage.toStringAsFixed(2)}%',
-                        style: TextStyle(
-                            color: getColorByPercentage(currentPercentage),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w400),
+              widget.priceData.marketState != 'REGULAR'
+                  ? Padding(
+                      padding: const EdgeInsets.only(top: 2.0),
+                      child: RichText(
+                        text: TextSpan(
+                          text: marketStateConversionMap[
+                                  widget.priceData.marketState]! +
+                              ' ',
+                          style: TextStyle(
+                              fontSize: 12, fontWeight: FontWeight.w400),
+                          children: <TextSpan>[
+                            TextSpan(
+                              text: (currentPriceDelta > 0 ? '+' : '') +
+                                  '${currentPriceDelta.toStringAsFixed(2)} / ' +
+                                  (currentPercentage > 0 ? '+' : '') +
+                                  '${currentPercentage.toStringAsFixed(2)}%',
+                              style: TextStyle(
+                                  color:
+                                      getColorByPercentage(currentPercentage),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w400),
+                            ),
+                          ],
+                        ),
                       ),
-                    ],
-                  ),
-                ),
-              )
+                    )
+                  : Container(),
             ],
           ),
         ),
-        Container(
-          // check the animation with expanding container
-          // color: CupertinoColors.darkBackgroundGray,
+        SizedBox(
           width: mediaQuery.size.width,
           height: 250,
           child: StreamBuilder<YahooHelperChartData>(
@@ -195,80 +198,105 @@ class _CupertinoStockOverviewMainRowState
               final data = chartSnapshot.data!;
               chartCache[selectedTimeframe] = data;
               final periodPercentage = data.percentage;
-              final periodPriceDelta =
-                  data.previousClose * (data.percentage / 100);
+              currentPriceDelta = data.previousClose * (data.percentage / 100);
               currentPercentage = periodPercentage;
 
-              // if (showGraphAnimation &&
-              // (chartSnapshot.connectionState != ConnectionState.waiting)) {
               graphAnimationController.forward();
-              // showGraphAnimation = false;
-              // }
-              return AnimatedBuilder(
-                animation: graphAnimation,
-                builder: (context, _) {
-                  return SizedBox(
-                    width: graphAnimation.value * mediaQuery.size.width,
-                    child: CustomPaint(
-                      painter: GraphPainter(
-                        containerSize: Size(
-                            graphAnimation.value * mediaQuery.size.width, 245),
-                        maxSize: Size(mediaQuery.size.width, 245),
-                        timeframe: selectedTimeframe,
-                        high: data.periodHigh,
-                        low: data.periodLow,
-                        points: data.close,
-                        timestampEnd: data.timestampEnd,
-                        timestampStart: data.timestampStart,
-                        currentTimestamp: DateTime.now().millisecondsSinceEpoch,
-                        lastClosePrice: data.lastClosePrice,
-                        previousClose: data.previousClose,
+              
+              return Stack(
+                children: [
+                  AnimatedBuilder(
+                    animation: graphAnimation,
+                    builder: (context, _) {
+                      return SizedBox(
+                        width: graphAnimation.value * mediaQuery.size.width,
+                        child: CustomPaint(
+                          painter: GraphPainter(
+                            containerSize: Size(
+                                graphAnimation.value * mediaQuery.size.width,
+                                245),
+                            // animationValue: graphAnimation.value,
+                            maxSize: Size(mediaQuery.size.width, 245),
+                            timeframe: selectedTimeframe,
+                            high: data.periodHigh,
+                            low: data.periodLow,
+                            points: data.close,
+                            timestampEnd: data.timestampEnd,
+                            timestampStart: data.timestampStart,
+                            currentTimestamp:
+                                DateTime.now().millisecondsSinceEpoch,
+                            lastClosePrice: data.lastClosePrice,
+                            previousClose: data.previousClose,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  Positioned(
+                    right: mediaQuery.size.width / 25,
+                    top: 40,
+                    bottom: 30,
+                    child: AnimatedOpacity(
+                      opacity: graphAnimationController.isCompleted ? 1.0 : 0.0,
+                      duration: const Duration(milliseconds: 500),
+                      // curve: Curves.easeInOut,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          for (double i in [data.periodHigh, data.periodLow])
+                            Container(
+                              decoration: BoxDecoration(
+                                color: CupertinoColors.darkBackgroundGray
+                                    .withOpacity(0.8),
+                                // color: CupertinoColors.systemRed,
+                                borderRadius: BorderRadius.circular(5),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(1.5),
+                                child: Text(i.toStringAsFixed(2),
+                                    style: TextStyle(fontSize: 13)),
+                              ),
+                            ),
+                        ],
                       ),
                     ),
-                  );
-                },
+                  ),
+                  // Positioned(
+                  //   bottom: 0,
+                  //   child: Row(
+                  //     crossAxisAlignment: CrossAxisAlignment.end,
+                  //     children: [
+                  //       for (int i = 0; i < 10; ++i)
+                  //         Container(
+                  //           width: 5,
+                  //           height: i * 10,
+                  //           color: kRedColor,
+                  //         ),
+                  //     ],
+                  //   ),
+                  // )
+                ],
               );
             },
           ),
         ),
-        Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                for (var i = 10; i <= 12; i += 2)
-                  Text(
-                    '$i AM',
-                    style: TextStyle(
-                        fontSize: 13, color: CupertinoColors.systemGrey3),
-                  ),
-                for (var i = 1; i <= 5; i += 2)
-                  Text(
-                    '$i PM',
-                    style: TextStyle(
-                        fontSize: 13, color: CupertinoColors.systemGrey3),
-                  ),
-              ],
-            ),
-            Padding(
-              padding: EdgeInsets.only(top: 8, left: 12, right: 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  ...availableTimeframes.map(
-                    (index) => TimeframeCard(
-                      widget.ticker,
-                      index,
-                      mediaQuery,
-                      index == selectedTimeframe,
-                      changeTimeframe,
-                      true,
-                    ),
-                  ),
-                ],
+        Padding(
+          padding: EdgeInsets.only(top: 8, left: 12, right: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              ...availableTimeframes.map(
+                (index) => TimeframeCard(
+                  widget.ticker,
+                  index,
+                  mediaQuery,
+                  index == selectedTimeframe,
+                  changeTimeframe,
+                  true,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ],
     );

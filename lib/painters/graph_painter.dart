@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:stockadvisor/constants.dart';
 
@@ -14,6 +15,7 @@ class GraphPainter extends CustomPainter {
   final double previousClose;
   final double lastClosePrice;
   final String timeframe;
+  // final double 
 
   GraphPainter(
       {required this.points,
@@ -37,32 +39,36 @@ class GraphPainter extends CustomPainter {
     final lastClosePaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 0.9
-      ..color = kSecondaryColor;
+      ..color = CupertinoColors.systemGrey;
+    final lineY = maxSize.height / 2;
     double currentWidth;
+    // print(' ${currentTimestamp / 1000} $timestampStart');
+    // print(DateTime.fromMillisecondsSinceEpoch(timestampEnd * 1000));
+    // print(DateTime.fromMillisecondsSinceEpoch(timestampStart * 1000));
+    int tS = timestampStart;
+    // print(timestampEnd - timestampStart);
+    if (timestampEnd - timestampStart > 86400) {
+      tS += 86400;
+    }
     if (timeframe == '1D') {
       high = max(high, previousClose);
       low = min(low, previousClose);
-      if ((currentTimestamp / 1000) < timestampStart ||
+      if ((currentTimestamp / 1000) < tS ||
           (currentTimestamp / 1000) > timestampEnd) {
         currentWidth = maxSize.width;
       } else {
         currentWidth = maxSize.width *
-            ((currentTimestamp / 1000 - timestampStart) /
-                (timestampEnd - timestampStart));
+            ((currentTimestamp / 1000 - tS) / (timestampEnd - tS));
       }
     } else {
       currentWidth = maxSize.width;
     }
-    print('called');
     // high -= 10;
     // fix padding (22)
     // double dx = (maxSize.width - 22) / (points!.chartQuotes!.low!.length);
 
     // fix intramarket bug
 
-    // print(' ${currentTimestamp / 1000} $timestampStart');
-    // print(DateTime.fromMillisecondsSinceEpoch(timestampEnd * 1000));
-    // print(DateTime.fromMillisecondsSinceEpoch(timestampStart * 1000));
     double dx = (currentWidth) / (points.length);
     double scaleFactor = (containerSize.height - 10) / (high - low);
     double prevY = containerSize.height - (points[0] - low) * scaleFactor;
@@ -71,22 +77,22 @@ class GraphPainter extends CustomPainter {
         containerSize.height - (previousClose - low) * scaleFactor;
     for (int i = 0; i < points.length; i++) {
       if (dx * i < containerSize.width) {
-        double currentY =
-            containerSize.height - (points[i] - low) * scaleFactor;
+        // double currentY =
+        //     containerSize.height - (points[i] - low) * scaleFactor;
+
         canvas.drawLine(
-          Offset((dx * i), currentY),
-          Offset(dx * (i - 1), prevY),
+          Offset((dx * i), lineY),
+          Offset(dx * (i - 1), lineY),
           paint,
         );
-        // if (i % 9 == 0 && timeframe == '1D') {
-        //   canvas.drawLine(
-        //       Offset((containerSize.width / points.length) * i, previousCloseY),
-        //       Offset((containerSize.width / points.length) * (i - 6),
-        //           previousCloseY),
-        //       lastClosePaint);
-        // }
         prevY = currentY;
       }
+    }
+    int prevI = -7;
+    for (int i = 0; i < containerSize.width; i += 15) {
+      canvas.drawLine(Offset(prevI.toDouble() + 7, previousCloseY),
+          Offset(i.toDouble(), previousCloseY), lastClosePaint);
+      prevI = i;
     }
     // canvas.drawLine(
     //     Offset(containerSize.width, previousCloseY),

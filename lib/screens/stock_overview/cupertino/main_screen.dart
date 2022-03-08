@@ -4,9 +4,7 @@ import 'package:stockadvisor/constants.dart';
 import 'package:stockadvisor/providers/data_provider.dart';
 import 'package:stockadvisor/screens/stock_overview/constants.dart';
 import 'package:stockadvisor/screens/stock_overview/cupertino/bottom_row.dart';
-import 'package:stockadvisor/screens/stock_overview/cupertino/graph_row.dart';
 import 'package:stockadvisor/screens/stock_overview/cupertino/main_row.dart';
-import 'package:stockadvisor/screens/stock_overview/cupertino/price_row.dart';
 
 class CupertinoStockOverviewMainScreen extends StatefulWidget {
   static const routeName = '/stock_overview';
@@ -54,29 +52,32 @@ class CupertinoStockOverviewMainScreenState
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         backgroundColor: kBlackColor.withOpacity(0.9),
-        middle: !isNavbarDisplayed
-            ? null
-            : Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(top: 1.0, bottom: 2.0),
-                    child: Text(
-                      tickerData['meta']!.companyLongName,
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                    ),
-                  ),
-                  SizedBox(
-                    child: Text(
-                      ' ${priceData.lastClosePrice.toStringAsFixed(2)} (${priceData.lastPercentage.toStringAsFixed(2)}%)',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: getColorByPercentage(priceData.lastPercentage),
-                      ),
-                    ),
-                  ),
-                ],
+        middle: AnimatedOpacity(
+          duration: const Duration(milliseconds: 150),
+          opacity: isNavbarDisplayed ? 1.0 : 0.0,
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(bottom: 2.0),
+                child: Text(
+                  tickerData['meta']!.companyLongName,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  style: TextStyle(fontWeight: FontWeight.w500),
+                ),
               ),
+              SizedBox(
+                child: Text(
+                  ' ${priceData.lastClosePrice.toStringAsFixed(2)} (${priceData.lastPercentage.toStringAsFixed(2)}%)',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: getColorByPercentage(priceData.lastPercentage),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
         trailing: CupertinoButton(
           padding: EdgeInsets.zero,
           child: const Icon(CupertinoIcons.star),
@@ -205,8 +206,8 @@ class CupertinoStockOverviewMainScreenState
                                 height: 7,
                               ),
                               Positioned(
-                                left:
-                                    (mediaQuery.size.width - 50 - 12) * position,
+                                left: (mediaQuery.size.width - 50 - 12) *
+                                    position,
                                 top: -3.5,
                                 child: Container(
                                   width: 14,
@@ -230,28 +231,30 @@ class CupertinoStockOverviewMainScreenState
                 ),
               ),
             ),
-            // Row(
-            //   children: [
-            //     Flexible(
-            //       flex: 1,
-            //       child: CupertinoInfoCard(
-            //         title: 'INFO',
-            //         titleIcon: CupertinoIcons.info_circle_fill,
-            //         height: 160,
-            //         rowPosition: RowPosition.left,
-            //       ),
-            //     ),
-            //     Flexible(
-            //       flex: 1,
-            //       child: CupertinoInfoCard(
-            //         title: 'MARKET CAP',
-            //         titleIcon: CupertinoIcons.chart_bar_alt_fill,
-            //         height: 160,
-            //         rowPosition: RowPosition.right,
-            //       ),
-            //     ),
-            //   ],
-            // ),
+            Row(
+              children: [
+                Flexible(
+                  flex: 1,
+                  child: CupertinoInfoCard(
+                    title: 'INFO',
+                    titleIcon: CupertinoIcons.info_circle_fill,
+                    height: 160,
+                    rowPosition: RowPosition.left,
+                    child: Container(),
+                  ),
+                ),
+                Flexible(
+                  flex: 1,
+                  child: CupertinoInfoCard(
+                    title: 'MARKET CAP',
+                    titleIcon: CupertinoIcons.chart_bar_alt_fill,
+                    height: 160,
+                    rowPosition: RowPosition.right,
+                    child: Container(),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),

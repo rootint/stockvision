@@ -62,7 +62,7 @@ class TickerStreams {
       if (timer == null) {
         tick();
       }
-      timer = Timer.periodic(const Duration(seconds: 55), (_) => tick());
+      timer = Timer.periodic(const Duration(seconds: 110), (_) => tick());
     }
 
     void stop() {
