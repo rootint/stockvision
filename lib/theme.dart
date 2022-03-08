@@ -45,6 +45,7 @@ CupertinoThemeData cupertinoDarkThemeData(BuildContext context) {
         fontFamily: DefaultTextStyle.of(context).style.fontFamily,
         fontSize: 17,
       ),
+      textStyle: TextStyle(letterSpacing: 0.04),
     ),
     // scaffoldBackgroundColor: kBlackColor,
     // fantastic!!!! vvvv

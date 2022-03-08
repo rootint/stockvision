@@ -6,11 +6,13 @@ import 'package:stockadvisor/providers/data_provider.dart';
 
 class CupertinoStockOverviewBottomRow extends StatelessWidget {
   final String ticker;
-  final YahooHelperPriceData data;
+  // final Stream<YahooHelperPriceData> priceStream;
+  final YahooHelperPriceData? cache;
 
   const CupertinoStockOverviewBottomRow({
     required this.ticker,
-    required this.data,
+    // required this.priceStream,
+    required this.cache,
     Key? key,
   }) : super(key: key);
 
@@ -18,7 +20,7 @@ class CupertinoStockOverviewBottomRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final height = 200;
+        final height = constraints.maxHeight;
         final width = constraints.maxWidth;
         final defaultTextStyle = TextStyle(fontSize: height / 7);
         final iconSize = height / 5.5;
@@ -43,43 +45,46 @@ class CupertinoStockOverviewBottomRow extends StatelessWidget {
                   borderRadius: BorderRadius.circular(15),
                   child: Container(
                     color: CupertinoColors.darkBackgroundGray,
-                    child: Padding(
-                      padding: leftCardPadding,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          InfoRow(
-                            data: data.previousDayClose.toStringAsFixed(2),
-                            icon: Icon(CupertinoIcons.time,
-                                size: iconSize, color: kSecondaryColor),
-                            labelText: '  Open',
-                            textStyle: defaultTextStyle,
+                    child: Consumer<DataProvider>(
+                      builder: (context, provider, _) {
+                        var data = provider.getPriceData(ticker: ticker);
+                        return Padding(
+                          padding: leftCardPadding,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              InfoRow(
+                                data: data.previousDayClose.toStringAsFixed(2),
+                                icon: Icon(CupertinoIcons.time,
+                                    size: iconSize, color: kSecondaryColor),
+                                labelText: '  Open',
+                                textStyle: defaultTextStyle,
+                              ),
+                              InfoRow(
+                                data: data.dayHigh.toStringAsFixed(2),
+                                icon: Icon(CupertinoIcons.arrow_up,
+                                    size: iconSize, color: kGreenColor),
+                                labelText: '  High',
+                                textStyle: defaultTextStyle,
+                              ),
+                              InfoRow(
+                                data: data.dayLow.toStringAsFixed(2),
+                                icon: Icon(CupertinoIcons.arrow_down,
+                                    size: iconSize, color: kRedColor),
+                                labelText: '  Low',
+                                textStyle: defaultTextStyle,
+                              ),
+                              InfoRow(
+                                data: data.pe == 'N/A' ? data.pe : data.pe.toStringAsFixed(2),
+                                icon: Icon(CupertinoIcons.chart_bar,
+                                    size: iconSize, color: kPrimaryColor),
+                                labelText: '  P/E',
+                                textStyle: defaultTextStyle,
+                              ),
+                            ],
                           ),
-                          InfoRow(
-                            data: data.dayHigh.toStringAsFixed(2),
-                            icon: Icon(CupertinoIcons.arrow_up,
-                                size: iconSize, color: kGreenColor),
-                            labelText: '  High',
-                            textStyle: defaultTextStyle,
-                          ),
-                          InfoRow(
-                            data: data.dayLow.toStringAsFixed(2),
-                            icon: Icon(CupertinoIcons.arrow_down,
-                                size: iconSize, color: kRedColor),
-                            labelText: '  Low',
-                            textStyle: defaultTextStyle,
-                          ),
-                          InfoRow(
-                            data: data.pe == 'N/A'
-                                ? data.pe
-                                : data.pe.toStringAsFixed(2),
-                            icon: Icon(CupertinoIcons.chart_bar,
-                                size: iconSize, color: kPrimaryColor),
-                            labelText: '  P/E',
-                            textStyle: defaultTextStyle,
-                          ),
-                        ],
-                      ),
+                        );
+                      },
                     ),
                   ),
                 ),

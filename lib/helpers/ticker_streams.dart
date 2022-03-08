@@ -9,7 +9,7 @@ class TickerStreams {
     TickerRange.oneDay: TickerInterval.twoMinute,
     TickerRange.fiveDay: TickerInterval.fifteenMinute,
     TickerRange.oneMonth: TickerInterval.sixtyMinute,
-    TickerRange.ytd: TickerInterval.ninetyMinute,
+    TickerRange.sixMonth: TickerInterval.oneDay,
     TickerRange.oneYear: TickerInterval.oneDay,
     TickerRange.fiveYear: TickerInterval.fiveDay,
     TickerRange.maxRange: TickerInterval.oneMonth,

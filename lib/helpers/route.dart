@@ -7,8 +7,8 @@ class RouteHelper {
     '/': (ctx) => CupertinoMainScreen(),
     CupertinoDashboardMainScreen.routeName: (ctx) =>
         CupertinoDashboardMainScreen(),
-    CupertinoStockOverviewScreen.routeName: (ctx) =>
-        CupertinoStockOverviewScreen(),
+    CupertinoStockOverviewMainScreen.routeName: (ctx) =>
+        CupertinoStockOverviewMainScreen(),
   };
   
   static final settingsRoutes = {};

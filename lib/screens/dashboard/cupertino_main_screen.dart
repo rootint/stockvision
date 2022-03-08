@@ -28,12 +28,28 @@ class CupertinoDashboardMainScreenState
     'aapl',
     'amd',
     'nvda',
+    'bmw.de',
     'pltr',
     'yndx.me',
     'goog',
     'amzn',
     'sber.me',
     'brk-a',
+    'pton',
+    'brk-b',
+    'msft',
+    'baba',
+    'xom',
+    'lmt',
+    'intc',
+    'mu',
+    'amat',
+    'qcom',
+    'atvi',
+    'crm',
+    'ea',
+    'tsla',
+    'fb'
   ];
   final List<double> _tickerLastPrices =
       List<double>.filled(_tickerList.length, 0);
@@ -130,9 +146,13 @@ class CupertinoDashboardMainScreenState
               ),
               ..._tickerList.map(
                 (ticker) {
+                  bool init = false;
                   return Consumer<DataProvider>(
                     builder: (ctx, provider, _) {
-                      provider.initTickerPriceStream(ticker: ticker);
+                      if (!init) {
+                        provider.initTickerData(ticker: ticker);
+                        init = true;
+                      }
                       YahooHelperPriceData data = provider.getPriceData(ticker: ticker);
                       return Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 15),
@@ -140,7 +160,7 @@ class CupertinoDashboardMainScreenState
                           onTap: () {
                             Navigator.of(context, rootNavigator: true)
                                 .pushNamed(
-                              CupertinoStockOverviewScreen.routeName,
+                              CupertinoStockOverviewMainScreen.routeName,
                               arguments: {
                                 'ticker': ticker,
                                 // 'priceStream': priceStream,

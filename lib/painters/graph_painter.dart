@@ -53,6 +53,7 @@ class GraphPainter extends CustomPainter {
     } else {
       currentWidth = maxSize.width;
     }
+    print('called');
     // high -= 10;
     // fix padding (22)
     // double dx = (maxSize.width - 22) / (points!.chartQuotes!.low!.length);
@@ -77,13 +78,13 @@ class GraphPainter extends CustomPainter {
           Offset(dx * (i - 1), prevY),
           paint,
         );
-        if (i % 9 == 0 && timeframe == '1D') {
-          canvas.drawLine(
-              Offset((containerSize.width / points.length) * i, previousCloseY),
-              Offset((containerSize.width / points.length) * (i - 6),
-                  previousCloseY),
-              lastClosePaint);
-        }
+        // if (i % 9 == 0 && timeframe == '1D') {
+        //   canvas.drawLine(
+        //       Offset((containerSize.width / points.length) * i, previousCloseY),
+        //       Offset((containerSize.width / points.length) * (i - 6),
+        //           previousCloseY),
+        //       lastClosePaint);
+        // }
         prevY = currentY;
       }
     }

@@ -1,32 +1,35 @@
 import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stockadvisor/constants.dart';
 import 'package:stockadvisor/helpers/ticker_streams.dart';
 import 'package:stockadvisor/models/yahoo_models/chart_data.dart';
+import 'package:stockadvisor/models/yahoo_models/meta_data.dart';
 import 'package:stockadvisor/models/yahoo_models/price_data.dart';
 import 'package:stockadvisor/painters/graph_painter.dart';
 import 'package:stockadvisor/screens/stock_overview/constants.dart';
 
-class CupertinoStockOverviewGraphRow extends StatefulWidget {
+class CupertinoStockOverviewMainRow extends StatefulWidget {
   final String ticker;
   final YahooHelperPriceData priceData;
-  const CupertinoStockOverviewGraphRow({
+  final Map<String, dynamic> tickerData;
+  const CupertinoStockOverviewMainRow({
     required this.ticker,
     required this.priceData,
+    required this.tickerData,
     Key? key,
   }) : super(key: key);
 
   @override
-  State<CupertinoStockOverviewGraphRow> createState() =>
-      _CupertinoStockOverviewGraphRowState();
+  State<CupertinoStockOverviewMainRow> createState() =>
+      _CupertinoStockOverviewMainRowState();
 }
 
-class _CupertinoStockOverviewGraphRowState
-    extends State<CupertinoStockOverviewGraphRow>
-    with TickerProviderStateMixin {
+class _CupertinoStockOverviewMainRowState
+    extends State<CupertinoStockOverviewMainRow> with TickerProviderStateMixin {
   String selectedTimeframe = "1D";
-  YahooHelperChartData? cachedChart;
+  Map<String, YahooHelperChartData> chartCache = {};
   bool showExtended = true;
   bool areStreamsInitialized = false;
 
@@ -49,7 +52,6 @@ class _CupertinoStockOverviewGraphRowState
   }
 
   void changeTimeframe(String timeframe, String ticker) {
-    print(timeframe);
     setState(() {
       selectedTimeframe = timeframe;
       chartController.close();
@@ -59,6 +61,13 @@ class _CupertinoStockOverviewGraphRowState
       showGraphAnimation = true;
       graphAnimationController.reset();
     });
+  }
+
+  Color getColorByPercentage(double percentage) {
+    if (percentage == 0) return CupertinoColors.systemGrey4;
+    if (percentage > 0) return kGreenColor;
+    if (percentage < 0) return kRedColor;
+    return CupertinoColors.white;
   }
 
   @override
@@ -84,31 +93,117 @@ class _CupertinoStockOverviewGraphRowState
           ticker: widget.ticker, range: rangeConversionMap[selectedTimeframe]!);
       areStreamsInitialized = true;
     }
+    double lastClosePrice = widget.priceData.lastClosePrice;
+    double lastPercentage = widget.priceData.lastPercentage;
+    double lastPriceDelta = lastClosePrice * lastPercentage / 100;
+    double currentPrice = widget.priceData.currentMarketPrice;
+    double currentPercentage = widget.priceData.currentPercentage;
+    double currentPriceDelta = currentPrice * currentPercentage / 100;
+
     return Column(
       children: [
+        SizedBox(
+          width: double.infinity,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(4),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: SvgPicture.string(widget.tickerData['tickerSvg'],
+                      height: 62),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 4.0),
+                child: Text(
+                  widget.ticker.toUpperCase(),
+                  // (widget.tickerData['meta']! as YahooHelperMetaData).companyLongName,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 19,
+                  ),
+                ),
+              ),
+              Text(
+                '${(widget.tickerData['meta']! as YahooHelperMetaData).companyLongName} • ${widget.priceData.currency}',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                  color: CupertinoColors.systemGrey2,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 4.0),
+                child: Text(
+                  widget.priceData.lastClosePrice.toStringAsFixed(2),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 34,
+                  ),
+                ),
+              ),
+              Text(
+                (lastPriceDelta > 0 ? '+' : '') +
+                    '${lastPriceDelta.toStringAsFixed(2)} / ' +
+                    (lastPercentage > 0 ? '+' : '') +
+                    '${lastPercentage.toStringAsFixed(2)}%',
+                style: TextStyle(
+                    color: getColorByPercentage(lastPercentage),
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 2.0),
+                child: RichText(
+                  text: TextSpan(
+                    text: marketStateConversionMap[
+                            widget.priceData.marketState]! +
+                        ' ',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
+                    children: <TextSpan>[
+                      TextSpan(
+                        text: (currentPriceDelta > 0 ? '+' : '') +
+                            '${currentPriceDelta.toStringAsFixed(2)} / ' +
+                            (currentPercentage > 0 ? '+' : '') +
+                            '${currentPercentage.toStringAsFixed(2)}%',
+                        style: TextStyle(
+                            color: getColorByPercentage(currentPercentage),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            ],
+          ),
+        ),
         Container(
           // check the animation with expanding container
           // color: CupertinoColors.darkBackgroundGray,
           width: mediaQuery.size.width,
           height: 250,
           child: StreamBuilder<YahooHelperChartData>(
-            initialData: cachedChart,
+            initialData: chartCache[selectedTimeframe],
             stream: chartController.stream.asBroadcastStream(),
             builder: (context, chartSnapshot) {
               if (chartSnapshot.data == null) {
                 return CupertinoActivityIndicator();
               }
               final data = chartSnapshot.data!;
-              cachedChart = data;
+              chartCache[selectedTimeframe] = data;
               final periodPercentage = data.percentage;
               final periodPriceDelta =
                   data.previousClose * (data.percentage / 100);
+              currentPercentage = periodPercentage;
+
               // if (showGraphAnimation &&
-                  // (chartSnapshot.connectionState != ConnectionState.waiting)) {
-                graphAnimationController.forward();
-                // showGraphAnimation = false;
+              // (chartSnapshot.connectionState != ConnectionState.waiting)) {
+              graphAnimationController.forward();
+              // showGraphAnimation = false;
               // }
-              print('iter');
               return AnimatedBuilder(
                 animation: graphAnimation,
                 builder: (context, _) {
@@ -117,17 +212,15 @@ class _CupertinoStockOverviewGraphRowState
                     child: CustomPaint(
                       painter: GraphPainter(
                         containerSize: Size(
-                            graphAnimation.value * mediaQuery.size.width,
-                            240),
-                        maxSize: Size(mediaQuery.size.width, 230),
+                            graphAnimation.value * mediaQuery.size.width, 245),
+                        maxSize: Size(mediaQuery.size.width, 245),
                         timeframe: selectedTimeframe,
                         high: data.periodHigh,
                         low: data.periodLow,
                         points: data.close,
                         timestampEnd: data.timestampEnd,
                         timestampStart: data.timestampStart,
-                        currentTimestamp:
-                            DateTime.now().millisecondsSinceEpoch,
+                        currentTimestamp: DateTime.now().millisecondsSinceEpoch,
                         lastClosePrice: data.lastClosePrice,
                         previousClose: data.previousClose,
                       ),
@@ -143,18 +236,24 @@ class _CupertinoStockOverviewGraphRowState
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                for (var i = 1; i <= 5; i++)
+                for (var i = 10; i <= 12; i += 2)
                   Text(
                     '$i AM',
-                    style:
-                        TextStyle(fontSize: 7 * mediaQuery.devicePixelRatio),
+                    style: TextStyle(
+                        fontSize: 13, color: CupertinoColors.systemGrey3),
+                  ),
+                for (var i = 1; i <= 5; i += 2)
+                  Text(
+                    '$i PM',
+                    style: TextStyle(
+                        fontSize: 13, color: CupertinoColors.systemGrey3),
                   ),
               ],
             ),
             Padding(
-              padding: EdgeInsets.only(top: 3 * mediaQuery.devicePixelRatio),
+              padding: EdgeInsets.only(top: 8, left: 12, right: 12),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   ...availableTimeframes.map(
                     (index) => TimeframeCard(
@@ -190,7 +289,6 @@ class TimeframeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // final defaultPadding = 1.5;
     return GestureDetector(
       onTap: () {
         if (!selected) {
@@ -202,14 +300,14 @@ class TimeframeCard extends StatelessWidget {
         decoration: BoxDecoration(
           // play with colors
           color: selected ? kPrimaryColor : CupertinoColors.darkBackgroundGray,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(9),
           border: isDarkMode
               ? null
               : Border.all(color: CupertinoColors.systemGrey3),
         ),
         curve: Curves.easeIn,
         child: SizedBox(
-          width: mediaQuery.size.width / 8,
+          width: mediaQuery.size.width / 8.2,
           height: 23,
           child: Padding(
             padding: EdgeInsets.only(top: 4),
@@ -222,8 +320,8 @@ class TimeframeCard extends StatelessWidget {
                 color: selected
                     ? CupertinoColors.white
                     : isDarkMode
-                        ? CupertinoColors.systemGrey3
-                        : CupertinoColors.systemGrey4,
+                        ? CupertinoColors.systemGrey
+                        : CupertinoColors.systemGrey2,
               ),
             ),
           ),

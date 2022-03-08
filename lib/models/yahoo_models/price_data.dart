@@ -8,6 +8,7 @@ class YahooHelperPriceData {
   final double dayLow;
   final dynamic pe;
   final double previousDayClose;
+  final String currency;
   YahooHelperPriceData({
     required this.marketState,
     required this.currentMarketPrice,
@@ -18,5 +19,6 @@ class YahooHelperPriceData {
     required this.lastPercentage,
     required this.pe,
     required this.previousDayClose,
+    required this.currency,
   });
 }

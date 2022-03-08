@@ -1,22 +1,46 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:stockadvisor/helpers/yahoo.dart';
+import 'package:stockadvisor/models/yahoo_models/meta_data.dart';
 import 'package:stockadvisor/models/yahoo_models/price_data.dart';
 import 'package:stockadvisor/helpers/ticker_streams.dart';
 
 class DataProvider extends ChangeNotifier {
-  var priceController = StreamController<YahooHelperPriceData>();
-  var closed = false;
-
   final Map<String, StreamController<YahooHelperPriceData>>
       _priceStreamControllers = {};
   final Map<String, StreamSubscription<YahooHelperPriceData>>
       _priceStreamSubscribers = {};
-  final Map<String, Map<String, dynamic>> _priceData = {};
+  final Map<String, YahooHelperPriceData?> _priceData = {};
+  final Map<String, Map<String, dynamic>> _tickerData = {};
 
   DataProvider() {
     _initCacheFromMemory();
   }
+
+  void _initCacheFromMemory() {}
+
+  void _loadCacheIntoMemory() {}
+
+  void initTickerData({required String ticker}) async {
+    initTickerPriceStream(ticker: ticker);
+    print('called' + ticker);
+    if (!_tickerData.containsKey(ticker)) {
+      _tickerData[ticker] = {};
+    }
+    if (!_tickerData[ticker]!.containsKey('tickerSvg')) {
+      _tickerData[ticker]!['tickerSvg'] =
+          await YahooHelper.getPictureLink(ticker: ticker);
+      notifyListeners();
+    }
+    if (!_tickerData[ticker]!.containsKey('meta')) {
+      _tickerData[ticker]!['meta'] =
+          await YahooHelper.getStockMetadata(ticker: ticker);
+      notifyListeners();
+    }
+  }
+
+  // Ticker Price Stream handlers
 
   void initTickerPriceStream({required String ticker}) {
     if (!_priceStreamControllers.containsKey(ticker)) {
@@ -24,26 +48,27 @@ class DataProvider extends ChangeNotifier {
           TickerStreams.priceStreamController(ticker: ticker);
       _priceStreamSubscribers[ticker] =
           _priceStreamControllers[ticker]!.stream.listen((data) {
-        _addPriceData(ticker: ticker, data: data);
+        if (!_priceData.containsKey(ticker)) {
+          _priceData[ticker] = null;
+        }
+        _priceData[ticker] = data;
+        notifyListeners();
       });
     }
   }
 
-  void _addPriceData({
-    required String ticker,
-    required YahooHelperPriceData data,
-  }) {
-    if (!_priceData.containsKey(ticker)) {
-      _priceData[ticker] = {};
-    }
-    _priceData[ticker]!['price'] = data;
-    // print(data.currentMarketPrice);
+  void removeTickerPriceStream({required String ticker}) {
+    _priceStreamSubscribers[ticker]!.cancel();
+    _priceStreamControllers[ticker]!.close();
+    _priceStreamControllers.remove(ticker);
     notifyListeners();
   }
 
+  // Getters / Setters
+
   YahooHelperPriceData getPriceData({required String ticker}) {
     if (_priceData.containsKey(ticker)) {
-      return _priceData[ticker]!['price'];
+      return _priceData[ticker]!;
     } else {
       return YahooHelperPriceData(
         marketState: 'N/A',
@@ -55,17 +80,23 @@ class DataProvider extends ChangeNotifier {
         lastPercentage: 0.0,
         pe: 0.0,
         previousDayClose: 0.0,
+        currency: 'N/A',
       );
     }
   }
 
-  void removeTickerPriceStream({required String ticker}) {
-    _priceStreamSubscribers[ticker]!.cancel();
-    _priceStreamControllers[ticker]!.close();
-    _priceStreamControllers.remove(ticker);
+  Map<String, dynamic> getTickerData({required String ticker}) {
+    if (!_tickerData.containsKey(ticker) || !_tickerData[ticker]!.containsKey('tickerSvg')) {
+      return {
+        'tickerSvg': '<svg width="56" height="56"></svg>',
+        'meta': YahooHelperMetaData(
+          companyLongName: "",
+          currency: "USD",
+          exchangeName: "",
+          marketCap: "",
+        ),
+      };
+    }
+    return _tickerData[ticker]!;
   }
-
-  void _initCacheFromMemory() {}
-
-  void _loadCacheIntoMemory() {}
 }

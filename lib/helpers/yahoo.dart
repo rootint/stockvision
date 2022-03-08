@@ -25,9 +25,9 @@ enum TickerRange {
   oneDay,
   fiveDay,
   oneMonth,
+  sixMonth,
   oneYear,
   fiveYear,
-  ytd,
   maxRange,
 }
 
@@ -61,7 +61,7 @@ class YahooHelper {
     TickerRange.oneMonth: "1mo",
     TickerRange.oneYear: "1y",
     TickerRange.fiveYear: "5y",
-    TickerRange.ytd: "ytd",
+    TickerRange.sixMonth: "6mo",
     TickerRange.maxRange: "max",
   };
 
@@ -111,6 +111,7 @@ class YahooHelper {
           lastPercentage: responseParsed["regularMarketChangePercent"],
           pe: responseParsed["trailingPE"] ?? 'N/A',
           previousDayClose: responseParsed["regularMarketPreviousClose"],
+          currency: responseParsed['currency']
         );
       }
       throw Exception("getCurrentPrice ${response.statusCode} Error");
@@ -180,7 +181,7 @@ class YahooHelper {
         }
         return resultSvg;
       } else {
-        return 'https://media.istockphoto.com/vectors/image-preview-icon-picture-placeholder-for-website-or-uiux-design-vector-id1222357475?k=20&m=1222357475&s=170667a&w=0&h=YGycIDbBRAWkZaSvdyUFvotdGfnKhkutJhMOZtIoUKY=';
+        return "";
       }
     } catch (error) {
       rethrow;
