@@ -391,40 +391,40 @@ class _CupertinoStockOverviewScreenState
                                                     mediaQuery.size.width,
                                                 child: Stack(
                                                   children: [
-                                                    CustomPaint(
-                                                      painter: GraphPainter(
-                                                        containerSize: Size(
-                                                            graphAnimation
-                                                                    .value *
-                                                                mediaQuery
-                                                                    .size.width,
-                                                            constraints
-                                                                    .maxHeight -
-                                                                10),
-                                                        maxSize: Size(
-                                                            mediaQuery
-                                                                .size.width,
-                                                            constraints
-                                                                    .maxHeight -
-                                                                10),
-                                                        timeframe:
-                                                            selectedTimeframe,
-                                                        high: data.periodHigh,
-                                                        low: data.periodLow,
-                                                        points: data.close,
-                                                        timestampEnd:
-                                                            data.timestampEnd,
-                                                        timestampStart:
-                                                            data.timestampStart,
-                                                        currentTimestamp: DateTime
-                                                                .now()
-                                                            .millisecondsSinceEpoch,
-                                                        lastClosePrice:
-                                                            data.lastClosePrice,
-                                                        previousClose:
-                                                            data.previousClose,
-                                                      ),
-                                                    ),
+                                                    // CustomPaint(
+                                                    //   painter: GraphPainter(
+                                                    //     containerSize: Size(
+                                                    //         graphAnimation
+                                                    //                 .value *
+                                                    //             mediaQuery
+                                                    //                 .size.width,
+                                                    //         constraints
+                                                    //                 .maxHeight -
+                                                    //             10),
+                                                    //     maxSize: Size(
+                                                    //         mediaQuery
+                                                    //             .size.width,
+                                                    //         constraints
+                                                    //                 .maxHeight -
+                                                    //             10),
+                                                    //     timeframe:
+                                                    //         selectedTimeframe,
+                                                    //     high: data.periodHigh,
+                                                    //     low: data.periodLow,
+                                                    //     points: data.close,
+                                                    //     timestampEnd:
+                                                    //         data.timestampEnd,
+                                                    //     timestampStart:
+                                                    //         data.timestampStart,
+                                                    //     currentTimestamp: DateTime
+                                                    //             .now()
+                                                    //         .millisecondsSinceEpoch,
+                                                    //     lastClosePrice:
+                                                    //         data.lastClosePrice,
+                                                    //     previousClose:
+                                                    //         data.previousClose,
+                                                    //   ),
+                                                    // ),
                                                   ],
                                                 ),
                                               );

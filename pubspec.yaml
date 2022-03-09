@@ -48,6 +48,7 @@ dependencies:
   dots_indicator: ^2.0.0
   flutter_svg: ^1.0.3
   html: ^0.15.0
+  intl: ^0.17.0
 
 dev_dependencies:
   flutter_test:

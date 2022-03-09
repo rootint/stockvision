@@ -48,7 +48,6 @@ class CupertinoStockOverviewMainScreenState
     final double position = 1 -
         (priceData.dayHigh - priceData.lastClosePrice) /
             (priceData.dayHigh - priceData.dayLow);
-    print(position);
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         backgroundColor: kBlackColor.withOpacity(0.9),
@@ -60,7 +59,7 @@ class CupertinoStockOverviewMainScreenState
               Padding(
                 padding: const EdgeInsets.only(bottom: 2.0),
                 child: Text(
-                  tickerData['meta']!.companyLongName,
+                  tickerData.containsKey('meta') ? tickerData['meta']!.companyLongName : 'Loading...',
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
                   style: TextStyle(fontWeight: FontWeight.w500),
