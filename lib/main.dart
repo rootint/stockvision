@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:provider/provider.dart';
 import 'package:stockadvisor/helpers/route.dart';
+import 'package:stockadvisor/providers/chart_provider.dart';
 import 'package:stockadvisor/providers/data_provider.dart';
 import 'package:stockadvisor/providers/theme_provider.dart';
 import 'package:stockadvisor/screens/dashboard/material_main_screen.dart';
@@ -29,6 +30,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider<ThemeProvider>(create: (_) => ThemeProvider()),
         ChangeNotifierProvider<DataProvider>(create: (_) => DataProvider()),
+        ChangeNotifierProvider<ChartProvider>(create: (_) => ChartProvider()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, provider, child) {

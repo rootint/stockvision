@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:stockadvisor/helpers/yahoo.dart';
 import 'package:stockadvisor/models/yahoo_models/chart_data.dart';
 import 'package:stockadvisor/models/yahoo_models/price_data.dart';
@@ -22,6 +23,7 @@ class TickerStreams {
 
     void tick() async {
       final data = await YahooHelper.getCurrentPrice(ticker: ticker);
+      // compute();
       controller.add(data);
     }
 

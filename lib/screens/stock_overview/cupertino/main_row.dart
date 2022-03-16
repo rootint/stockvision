@@ -5,12 +5,14 @@ import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
 import 'package:stockadvisor/constants.dart';
 import 'package:stockadvisor/helpers/ticker_streams.dart';
 import 'package:stockadvisor/models/yahoo_models/chart_data.dart';
 import 'package:stockadvisor/models/yahoo_models/meta_data.dart';
 import 'package:stockadvisor/models/yahoo_models/price_data.dart';
 import 'package:stockadvisor/painters/graph_painter.dart';
+import 'package:stockadvisor/providers/chart_provider.dart';
 import 'package:stockadvisor/screens/stock_overview/constants.dart';
 
 class CupertinoStockOverviewMainRow extends StatefulWidget {
@@ -33,46 +35,13 @@ class _CupertinoStockOverviewMainRowState
     extends State<CupertinoStockOverviewMainRow> with TickerProviderStateMixin {
   String selectedTimeframe = "1D";
   Map<String, YahooHelperChartData> chartCache = {};
-  bool showExtended = true;
-  bool areStreamsInitialized = false;
-  bool startAnimation = false;
-  bool reverseAnimation = false;
-  bool randomBool = true;
 
+  // Stream
+
+  bool isStreamInitialized = false;
   late StreamController<YahooHelperChartData> chartController;
 
-  bool showGraphAnimation = true;
-  late Animation<double> graphAnimation;
-  late AnimationController graphAnimationController;
-
-  void initAnimation() {
-    graphAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 900),
-      vsync: this,
-    );
-
-    Tween<double> _graphTween = Tween(begin: 0.0, end: 1.0);
-
-    graphAnimation = _graphTween.animate(CurvedAnimation(
-        parent: graphAnimationController, curve: Curves.easeInOutSine));
-  }
-
-  void changeTimeframe(String timeframe, String ticker) {
-    setState(() {
-      selectedTimeframe = timeframe;
-      chartController.close();
-      chartController = TickerStreams.chartStreamController(
-          ticker: ticker, range: rangeConversionMap[timeframe]!);
-      showExtended = (selectedTimeframe == '1D');
-      // showGraphAnimation = true;
-      reverseAnimation = true;
-      // graphAnimationController.reset();
-      // graphAnimationController.reverse();
-      // graphAnimationController.repeat(reverse: true);
-    });
-  }
-
-  // slider properties
+  // Slider
 
   bool sliderShown = false;
   double sliderPosition = 0.0;
@@ -84,7 +53,7 @@ class _CupertinoStockOverviewMainRowState
   double sliderPointY = 0.0;
   Color sliderPointColor = CupertinoColors.systemGrey4;
 
-  void showSlider(double deltaX, YahooHelperChartData data, Size size) {
+  void initSlider(double deltaX, YahooHelperChartData data, Size size) {
     setState(() {
       if (hapticDelay == 0) {
         HapticFeedback.lightImpact();
@@ -92,20 +61,54 @@ class _CupertinoStockOverviewMainRowState
       }
       hapticDelay--;
       sliderShown = true;
-      sliderPosition = deltaX;
       var index = ((data.close.length / size.width) * deltaX).round();
-      sliderPrice = data.close[index];
+      sliderPosition = index * (size.width / data.close.length);
+      sliderPrice = data.close[index % data.close.length];
       var high = max(data.periodHigh, data.previousClose);
       var low = min(data.periodLow, data.previousClose);
-      double scaleFactor =
-          (size.height - 10) / (high - low);
-      sliderPointY = (data.close[index] - low) * scaleFactor;
+      double scaleFactor = (size.height - 10) / (high - low);
+      sliderPointY = (size.height / 2 + 5) -
+          (sliderPrice - (high + low) / 2) * scaleFactor;
       sliderDeltaPrice = sliderPrice - data.previousClose;
       sliderPercentage = ((sliderPrice / data.previousClose) - 1) * 100;
       sliderTimestamp =
           DateTime.fromMillisecondsSinceEpoch(data.timestamp[index] * 1000);
       sliderPointColor = getColorByPercentage(sliderPercentage);
     });
+  }
+
+  // Animation
+
+  bool showGraphAnimation = true;
+  bool startAnimation = false;
+  bool reverseAnimation = false;
+  late Animation<double> graphAnimation;
+  late AnimationController graphAnimationController;
+
+  void initAnimation() {
+    graphAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    Tween<double> _graphTween = Tween(begin: 0.0, end: 1.0);
+
+    graphAnimation = _graphTween.animate(CurvedAnimation(
+        parent: graphAnimationController, curve: Curves.easeInOutSine));
+  }
+
+  // Other
+
+  void changeTimeframe(String timeframe, String ticker) {
+    setState(() {
+      selectedTimeframe = timeframe;
+      // chartController.close();
+      // chartController = TickerStreams.chartStreamController(
+      //     ticker: ticker, range: rangeConversionMap[timeframe]!);
+      reverseAnimation = true;
+    });
+    // print('should reverse');
+    // graphAnimationController.reverse();
   }
 
   Color getColorByPercentage(double percentage) {
@@ -115,12 +118,15 @@ class _CupertinoStockOverviewMainRowState
     return CupertinoColors.white;
   }
 
+  // Overrides
+
   @override
   void initState() {
     super.initState();
     showGraphAnimation = true;
     initAnimation();
     graphAnimationController.reset();
+
   }
 
   @override
@@ -133,15 +139,24 @@ class _CupertinoStockOverviewMainRowState
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
-    if (!areStreamsInitialized) {
-      chartController = TickerStreams.chartStreamController(
-          ticker: widget.ticker, range: rangeConversionMap[selectedTimeframe]!);
-      areStreamsInitialized = true;
+    final chartProvider = Provider.of<ChartProvider>(context);
+    if (!isStreamInitialized) {
+      // chartController = TickerStreams.chartStreamController(
+      //     ticker: widget.ticker, range: rangeConversionMap[selectedTimeframe]!);
+      chartProvider.initChartStream(ticker: widget.ticker, range: rangeConversionMap[selectedTimeframe]!);
+      print('stream init');
+      isStreamInitialized = true;
     }
     double lastClosePrice = widget.priceData.lastClosePrice;
-    double lastPercentage = widget.priceData.lastPercentage;
+    double lastPercentage = 0.0;
+    if (chartCache.containsKey(selectedTimeframe)) {
+      lastPercentage = chartCache[selectedTimeframe]!.percentage;
+    } else {
+      lastPercentage = widget.priceData.lastPercentage;
+    }
     double lastPriceDelta = lastClosePrice * lastPercentage / 100;
     double currentPrice = widget.priceData.currentMarketPrice;
+
     double currentPercentage = widget.priceData.currentPercentage;
     double currentPriceDelta = currentPrice * currentPercentage / 100;
 
@@ -152,6 +167,7 @@ class _CupertinoStockOverviewMainRowState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              // SVG ICON
               Padding(
                 padding: const EdgeInsets.all(4),
                 child: ClipRRect(
@@ -160,21 +176,23 @@ class _CupertinoStockOverviewMainRowState
                       height: 62),
                 ),
               ),
+              // TICKER NAME
               Padding(
-                padding: const EdgeInsets.only(top: 4.0),
+                padding: const EdgeInsets.only(top: 2.0, bottom: 1.0),
                 child: Text(
                   widget.ticker.toUpperCase(),
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 19,
                   ),
                 ),
               ),
+              // FULL TICKER NAME / CURRENCY / MARKET STATE
               if (sliderShown)
                 Text(
                   DateFormat('jm').format(sliderTimestamp!) +
                       DateFormat(' - dd MMM y').format(sliderTimestamp!),
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontWeight: FontWeight.w400,
                     fontSize: 13,
                     color: CupertinoColors.systemGrey2,
@@ -190,23 +208,14 @@ class _CupertinoStockOverviewMainRowState
                     textAlign: TextAlign.center,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontWeight: FontWeight.w400,
                       fontSize: 13,
                       color: CupertinoColors.systemGrey2,
                     ),
                   ),
                 ),
-              // Text(
-              //   widget.tickerData.containsKey('meta')
-              //       ? 'Market Open'
-              //       : 'Loading...',
-              //   style: TextStyle(
-              //     fontWeight: FontWeight.w400,
-              //     fontSize: 13,
-              //     color: CupertinoColors.systemGrey2,
-              //   ),
-              // ),
+              // CURRENT STOCK PRICE
               Padding(
                 padding: const EdgeInsets.only(top: 4.0),
                 child: Text(
@@ -222,6 +231,7 @@ class _CupertinoStockOverviewMainRowState
                   ),
                 ),
               ),
+              // CURRENT PERIOD PERCENTAGE
               if (sliderShown)
                 Text(
                   (sliderDeltaPrice > 0 ? '+' : '') +
@@ -244,40 +254,41 @@ class _CupertinoStockOverviewMainRowState
                       fontSize: 14,
                       fontWeight: FontWeight.bold),
                 ),
-              widget.priceData.marketState != 'REGULAR'
-                  ? Padding(
-                      padding: const EdgeInsets.only(top: 2.0),
-                      child: RichText(
-                        text: TextSpan(
-                          text: marketStateConversionMap[
-                                  widget.priceData.marketState]! +
-                              ' ',
-                          style: TextStyle(
-                            fontSize: 12,
-                            letterSpacing: 0.04,
-                            fontWeight: FontWeight.w400,
-                          ),
-                          children: <TextSpan>[
-                            TextSpan(
-                              text: (currentPriceDelta > 0 ? '+' : '') +
-                                  '${currentPriceDelta.toStringAsFixed(2)} / ' +
-                                  (currentPercentage > 0 ? '+' : '') +
-                                  '${currentPercentage.toStringAsFixed(2)}%',
-                              style: TextStyle(
-                                  color:
-                                      getColorByPercentage(currentPercentage),
-                                  letterSpacing: 0.04,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w400),
-                            ),
-                          ],
-                        ),
+              // EXTENDED MARKET PERCENTAGE
+              if (widget.priceData.marketState != 'REGULAR' &&
+                  widget.priceData.extendedMarketAvailable)
+                Padding(
+                  padding: const EdgeInsets.only(top: 2.0),
+                  child: RichText(
+                    text: TextSpan(
+                      text: marketStateConversionMap[
+                              widget.priceData.marketState]! +
+                          ' ',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        letterSpacing: 0.04,
+                        fontWeight: FontWeight.w400,
                       ),
-                    )
-                  : Container(),
+                      children: <TextSpan>[
+                        TextSpan(
+                          text: (currentPriceDelta > 0 ? '+' : '') +
+                              '${currentPriceDelta.toStringAsFixed(2)} / ' +
+                              (currentPercentage > 0 ? '+' : '') +
+                              '${currentPercentage.toStringAsFixed(2)}%',
+                          style: TextStyle(
+                              color: getColorByPercentage(currentPercentage),
+                              letterSpacing: 0.04,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w400),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
             ],
           ),
         ),
+        // CHART + OPEN/CLOSE + SLIDER
         SizedBox(
           width: mediaQuery.size.width,
           height: 250,
@@ -298,88 +309,26 @@ class _CupertinoStockOverviewMainRowState
                   ),
                 );
               }
+              print("loaded...");
               final data = chartSnapshot.data!;
               chartCache[selectedTimeframe] = data;
-              final periodPercentage = data.percentage;
-              currentPriceDelta = data.previousClose * (data.percentage / 100);
-              currentPercentage = periodPercentage;
-              // if (!reverseAnimation) {
-              // if (randomBool) {
-              graphAnimationController.forward();
-              // randomBool = false;
-              // }
-              // } else {
-              //   graphAnimationController.repeat(reverse: true);
-              //   reverseAnimation = false;
-              // }
+              currentPercentage = data.percentage;
+              currentPriceDelta =
+                  data.previousClose * (currentPercentage / 100);
+              lastPriceDelta = data.previousClose * (currentPercentage / 100);
+              if (reverseAnimation) {
+                graphAnimationController.reverse();
+              } else {
+                graphAnimationController.forward();
+              }
               return GestureDetector(
-                onHorizontalDragUpdate: (details) {
-                  showSlider(
-                    details.localPosition.dx,
-                    data,
-                    Size(mediaQuery.size.width, 250),
-                  );
-                },
-                onHorizontalDragEnd: (details) {
-                  setState(() {
-                    sliderShown = false;
-                    sliderPosition = mediaQuery.size.width;
-                  });
-                },
-                onHorizontalDragStart: (details) {
-                  showSlider(
-                    details.localPosition.dx,
-                    data,
-                    Size(mediaQuery.size.width, 250),
-                  );
-                },
-                onHorizontalDragDown: (details) {
-                  showSlider(
-                    details.localPosition.dx,
-                    data,
-                    Size(mediaQuery.size.width, 250),
-                  );
-                },
-                onHorizontalDragCancel: () {
-                  setState(() {
-                    sliderShown = false;
-                    sliderPosition = mediaQuery.size.width;
-                  });
-                },
-                onLongPressMoveUpdate: (details) {
-                  showSlider(
-                    details.localPosition.dx,
-                    data,
-                    Size(mediaQuery.size.width, 250),
-                  );
-                },
-                onLongPressStart: (details) {
-                  showSlider(
-                    details.localPosition.dx,
-                    data,
-                    Size(mediaQuery.size.width, 250),
-                  );
-                },
-                onLongPressDown: (details) {
-                  showSlider(
-                    details.localPosition.dx,
-                    data,
-                    Size(mediaQuery.size.width, 250),
-                  );
-                },
-                onLongPressEnd: (details) {
-                  setState(() {
-                    sliderShown = false;
-                    sliderPosition = mediaQuery.size.width;
-                  });
-                },
                 child: Stack(
                   children: [
+                    // GRAPH
                     AnimatedBuilder(
                       animation: graphAnimation,
                       builder: (context, _) {
                         return SizedBox(
-                          // width: graphAnimation.value * mediaQuery.size.width,
                           width: mediaQuery.size.width,
                           child: CustomPaint(
                             painter: GraphPainter(
@@ -403,6 +352,7 @@ class _CupertinoStockOverviewMainRowState
                         );
                       },
                     ),
+                    // HIGH / LOW CARDS
                     Positioned(
                       right: mediaQuery.size.width / 25,
                       top: 40,
@@ -411,7 +361,6 @@ class _CupertinoStockOverviewMainRowState
                         opacity:
                             graphAnimationController.isCompleted ? 1.0 : 0.0,
                         duration: const Duration(milliseconds: 250),
-                        // curve: Curves.easeInOut,
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -425,7 +374,7 @@ class _CupertinoStockOverviewMainRowState
                                   padding: const EdgeInsets.all(1.5),
                                   child: Text(
                                     i.toStringAsFixed(2),
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       fontSize: 13,
                                       color: CupertinoColors.systemGrey5,
                                     ),
@@ -436,11 +385,13 @@ class _CupertinoStockOverviewMainRowState
                         ),
                       ),
                     ),
+                    // This container allows the gesturedetector to span the entire graph
                     Container(
                       width: mediaQuery.size.width,
                       height: 250,
-                      color: CupertinoColors.black.withAlpha(0),
+                      color: kBlackColor.withAlpha(0),
                     ),
+                    // SLIDER
                     if (sliderShown)
                       Positioned(
                         top: 0,
@@ -449,12 +400,11 @@ class _CupertinoStockOverviewMainRowState
                         child: Container(
                           width: 0.8,
                           color: CupertinoColors.systemGrey4,
-                          // color: kPrimaryColor,
                         ),
                       ),
                     if (sliderShown)
                       Positioned(
-                        bottom: sliderPointY,
+                        top: sliderPointY - 2.5,
                         left: sliderPosition - 2.5,
                         child: Container(
                           width: 5,
@@ -465,28 +415,76 @@ class _CupertinoStockOverviewMainRowState
                           ),
                         ),
                       ),
-                    // Positioned(
-                    //   bottom: 0,
-                    //   child: Row(
-                    //     crossAxisAlignment: CrossAxisAlignment.end,
-                    //     children: [
-                    //       for (int i = 0; i < 10; ++i)
-                    //         Container(
-                    //           width: 5,
-                    //           height: i * 10,
-                    //           color: kRedColor,
-                    //         ),
-                    //     ],
-                    //   ),
-                    // )
                   ],
                 ),
+                // GESTURES FOR THE SLIDER
+                onHorizontalDragUpdate: (details) {
+                  initSlider(
+                    details.localPosition.dx,
+                    data,
+                    Size(mediaQuery.size.width, 250),
+                  );
+                },
+                onHorizontalDragEnd: (details) {
+                  setState(() {
+                    sliderShown = false;
+                    sliderPosition = mediaQuery.size.width;
+                  });
+                },
+                onHorizontalDragStart: (details) {
+                  initSlider(
+                    details.localPosition.dx,
+                    data,
+                    Size(mediaQuery.size.width, 250),
+                  );
+                },
+                onHorizontalDragDown: (details) {
+                  initSlider(
+                    details.localPosition.dx,
+                    data,
+                    Size(mediaQuery.size.width, 250),
+                  );
+                },
+                onHorizontalDragCancel: () {
+                  setState(() {
+                    sliderShown = false;
+                    sliderPosition = mediaQuery.size.width;
+                  });
+                },
+                onLongPressMoveUpdate: (details) {
+                  initSlider(
+                    details.localPosition.dx,
+                    data,
+                    Size(mediaQuery.size.width, 250),
+                  );
+                },
+                onLongPressStart: (details) {
+                  initSlider(
+                    details.localPosition.dx,
+                    data,
+                    Size(mediaQuery.size.width, 250),
+                  );
+                },
+                onLongPressDown: (details) {
+                  initSlider(
+                    details.localPosition.dx,
+                    data,
+                    Size(mediaQuery.size.width, 250),
+                  );
+                },
+                onLongPressEnd: (details) {
+                  setState(() {
+                    sliderShown = false;
+                    sliderPosition = mediaQuery.size.width;
+                  });
+                },
               );
             },
           ),
         ),
+        // TIMEFRAME CARDS
         Padding(
-          padding: EdgeInsets.only(top: 8, left: 12, right: 12),
+          padding: const EdgeInsets.only(top: 8, left: 12, right: 12),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -531,7 +529,6 @@ class TimeframeCard extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
-          // play with colors
           color: selected ? kPrimaryColor : CupertinoColors.darkBackgroundGray,
           borderRadius: BorderRadius.circular(9),
           border: isDarkMode
@@ -543,7 +540,7 @@ class TimeframeCard extends StatelessWidget {
           width: mediaQuery.size.width / 8.2,
           height: 23,
           child: Padding(
-            padding: EdgeInsets.only(top: 4),
+            padding: const EdgeInsets.only(top: 4),
             child: Text(
               text,
               textAlign: TextAlign.center,

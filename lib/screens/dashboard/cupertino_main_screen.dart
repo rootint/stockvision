@@ -49,7 +49,8 @@ class CupertinoDashboardMainScreenState
     'crm',
     'ea',
     'tsla',
-    'fb'
+    'fb',
+    'rub=x'
   ];
   final List<double> _tickerLastPrices =
       List<double>.filled(_tickerList.length, 0);

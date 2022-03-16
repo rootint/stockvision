@@ -111,7 +111,8 @@ class YahooHelper {
           lastPercentage: responseParsed["regularMarketChangePercent"],
           pe: responseParsed["trailingPE"] ?? 'N/A',
           previousDayClose: responseParsed["regularMarketPreviousClose"],
-          currency: responseParsed['currency']
+          currency: responseParsed['currency'],
+          extendedMarketAvailable: responseParsed.containsKey("postMarketPrice") || responseParsed.containsKey("preMarketPrice"),
         );
       }
       throw Exception("getCurrentPrice ${response.statusCode} Error");

@@ -239,7 +239,8 @@ class _CupertinoStockOverviewScreenState
                               ),
                               Consumer<DataProvider>(
                                   builder: (context, provider, _) {
-                                var data = provider.getPriceData(ticker: ticker);
+                                var data =
+                                    provider.getPriceData(ticker: ticker);
                                 cachedPrice = data;
                                 final price = cachedPrice!.lastClosePrice;
                                 final prePostPrice =

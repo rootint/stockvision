@@ -23,7 +23,7 @@ class DataProvider extends ChangeNotifier {
   void _loadCacheIntoMemory() {}
 
   void initTickerData({required String ticker}) async {
-    initTickerPriceStream(ticker: ticker);
+    _initTickerPriceStream(ticker: ticker);
     print('called' + ticker);
     if (!_tickerData.containsKey(ticker)) {
       _tickerData[ticker] = {};
@@ -42,7 +42,7 @@ class DataProvider extends ChangeNotifier {
 
   // Ticker Price Stream handlers
 
-  void initTickerPriceStream({required String ticker}) {
+  void _initTickerPriceStream({required String ticker}) {
     if (!_priceStreamControllers.containsKey(ticker)) {
       _priceStreamControllers[ticker] =
           TickerStreams.priceStreamController(ticker: ticker);
@@ -57,7 +57,7 @@ class DataProvider extends ChangeNotifier {
     }
   }
 
-  void removeTickerPriceStream({required String ticker}) {
+  void _removeTickerPriceStream({required String ticker}) {
     _priceStreamSubscribers[ticker]!.cancel();
     _priceStreamControllers[ticker]!.close();
     _priceStreamControllers.remove(ticker);
@@ -81,12 +81,14 @@ class DataProvider extends ChangeNotifier {
         pe: 0.0,
         previousDayClose: 0.0,
         currency: 'N/A',
+        extendedMarketAvailable: false,
       );
     }
   }
 
   Map<String, dynamic> getTickerData({required String ticker}) {
-    if (!_tickerData.containsKey(ticker) || !_tickerData[ticker]!.containsKey('tickerSvg')) {
+    if (!_tickerData.containsKey(ticker) ||
+        !_tickerData[ticker]!.containsKey('tickerSvg')) {
       return {
         'tickerSvg': '<svg width="56" height="56"></svg>',
         'meta': YahooHelperMetaData(
