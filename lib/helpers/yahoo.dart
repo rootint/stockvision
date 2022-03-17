@@ -78,8 +78,7 @@ class YahooHelper {
   /// price data of a ticker.
   ///
   /// Throws [Exception] if the response was faulty.
-  static Future<YahooHelperPriceData> getCurrentPrice(
-      {required String ticker}) async {
+  static Future<YahooHelperPriceData> getCurrentPrice(String ticker) async {
     try {
       final response = await http
           .get(Uri.parse(apiURL + mainApiString + "?symbols=" + ticker));
@@ -221,11 +220,15 @@ class YahooHelper {
   /// gaps in the graphs are totally negligible.
   ///
   /// Throws [Exception] if a response failed.
-  static Future<YahooHelperChartData> getChartData({
-    required String ticker,
-    TickerInterval interval = TickerInterval.oneMinute,
-    TickerRange range = TickerRange.oneDay,
-  }) async {
+  // static Future<YahooHelperChartData> getChartData({
+  //   required String ticker,
+  //   TickerInterval interval = TickerInterval.oneMinute,
+  //   TickerRange range = TickerRange.oneDay,
+  // }) async {
+    static Future<YahooHelperChartData> getChartData(Map<String, dynamic> input) async {
+    String ticker = input['ticker']!;
+    TickerInterval interval = input['interval']!;
+    TickerRange range = input['range']!;
     try {
       final response = await http.get(Uri.parse(apiURL +
           chartApiString +

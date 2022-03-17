@@ -82,7 +82,7 @@ class GraphPainter extends CustomPainter {
     final lastClosePaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 0.9
-      ..color = CupertinoColors.systemGrey;
+      ..color = CupertinoColors.systemGrey.withAlpha((animationValue * 255).toInt());
 
     // ..shader = ui.Gradient.linear(
     //   Offset(maxSize.width / 2, 50),

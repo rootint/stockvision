@@ -35,11 +35,12 @@ class _CupertinoStockOverviewMainRowState
     extends State<CupertinoStockOverviewMainRow> with TickerProviderStateMixin {
   String selectedTimeframe = "1D";
   Map<String, YahooHelperChartData> chartCache = {};
+  bool isLoading = false;
 
   // Stream
 
   bool isStreamInitialized = false;
-  late StreamController<YahooHelperChartData> chartController;
+  // late StreamController<YahooHelperChartData> chartController;
 
   // Slider
 
@@ -61,9 +62,10 @@ class _CupertinoStockOverviewMainRowState
       }
       hapticDelay--;
       sliderShown = true;
-      var index = ((data.close.length / size.width) * deltaX).round();
+      var index = ((data.close.length / size.width) * deltaX).round() %
+          data.close.length;
       sliderPosition = index * (size.width / data.close.length);
-      sliderPrice = data.close[index % data.close.length];
+      sliderPrice = data.close[index];
       var high = max(data.periodHigh, data.previousClose);
       var low = min(data.periodLow, data.previousClose);
       double scaleFactor = (size.height - 10) / (high - low);
@@ -84,6 +86,7 @@ class _CupertinoStockOverviewMainRowState
   bool reverseAnimation = false;
   late Animation<double> graphAnimation;
   late AnimationController graphAnimationController;
+  YahooHelperChartData? prevChartData;
 
   void initAnimation() {
     graphAnimationController = AnimationController(
@@ -101,11 +104,16 @@ class _CupertinoStockOverviewMainRowState
 
   void changeTimeframe(String timeframe, String ticker) {
     setState(() {
-      selectedTimeframe = timeframe;
       // chartController.close();
       // chartController = TickerStreams.chartStreamController(
       //     ticker: ticker, range: rangeConversionMap[timeframe]!);
+      final chartProvider = Provider.of<ChartProvider>(context, listen: false);
+      prevChartData = chartProvider.getChartData(ticker: ticker, range: rangeConversionMap[selectedTimeframe]!);
+      chartProvider.removeChartStreams();
+      chartProvider.initChartStream(
+          ticker: ticker, range: rangeConversionMap[timeframe]!);
       reverseAnimation = true;
+      selectedTimeframe = timeframe;
     });
     // print('should reverse');
     // graphAnimationController.reverse();
@@ -126,13 +134,22 @@ class _CupertinoStockOverviewMainRowState
     showGraphAnimation = true;
     initAnimation();
     graphAnimationController.reset();
+  }
 
+  @override
+  void deactivate() {
+    final chartProvider = Provider.of<ChartProvider>(context);
+    chartProvider.removeChartStreams();
+    super.deactivate();
   }
 
   @override
   void dispose() {
+    // final chartProvider = Provider.of<ChartProvider>(context, listen: false);
     graphAnimationController.dispose();
-    chartController.close();
+    // chartProvider.removeChartStream(ticker: widget.ticker);
+    // chartController.close();
+
     super.dispose();
   }
 
@@ -143,20 +160,29 @@ class _CupertinoStockOverviewMainRowState
     if (!isStreamInitialized) {
       // chartController = TickerStreams.chartStreamController(
       //     ticker: widget.ticker, range: rangeConversionMap[selectedTimeframe]!);
-      chartProvider.initChartStream(ticker: widget.ticker, range: rangeConversionMap[selectedTimeframe]!);
+      chartProvider.initChartStream(
+          ticker: widget.ticker, range: rangeConversionMap[selectedTimeframe]!);
       print('stream init');
       isStreamInitialized = true;
     }
-    double lastClosePrice = widget.priceData.lastClosePrice;
-    double lastPercentage = 0.0;
+    // double lastClosePrice = widget.priceData.lastClosePrice;
+    double prevPeriodClose = 0.0;
     if (chartCache.containsKey(selectedTimeframe)) {
-      lastPercentage = chartCache[selectedTimeframe]!.percentage;
+      prevPeriodClose = chartProvider
+          .getChartData(
+              ticker: widget.ticker,
+              range: rangeConversionMap[selectedTimeframe]!)
+          .previousClose;
+      // if (closeData != 0) prevPeriodClose = closeData;
     } else {
-      lastPercentage = widget.priceData.lastPercentage;
+      prevPeriodClose = widget.priceData.previousDayClose;
     }
-    double lastPriceDelta = lastClosePrice * lastPercentage / 100;
+    double lastPercentage =
+        widget.priceData.lastClosePrice / prevPeriodClose * 100 - 100;
+    double lastPriceDelta = prevPeriodClose * lastPercentage / 100;
     double currentPrice = widget.priceData.currentMarketPrice;
 
+    // data for extended market periods
     double currentPercentage = widget.priceData.currentPercentage;
     double currentPriceDelta = currentPrice * currentPercentage / 100;
 
@@ -292,15 +318,15 @@ class _CupertinoStockOverviewMainRowState
         SizedBox(
           width: mediaQuery.size.width,
           height: 250,
-          child: StreamBuilder<YahooHelperChartData>(
-            initialData: chartCache[selectedTimeframe],
-            stream: chartController.stream.asBroadcastStream(),
-            builder: (context, chartSnapshot) {
-              // print(chartSnapshot.connectionState);
-              // if (chartSnapshot.connectionState == ConnectionState.waiting) {
-              if (chartSnapshot.data == null) {
-                // if (["1Y", "5Y", "MAX"].contains(selectedTimeframe)) {}
-                print(chartCache["1D"]);
+          child: Consumer<ChartProvider>(
+            builder: (context, provider, _) {
+              var data = reverseAnimation ? prevChartData! : provider.getChartData(
+                    ticker: widget.ticker,
+                    range: rangeConversionMap[selectedTimeframe]!);
+              if (reverseAnimation) {
+                graphAnimationController.reverse();
+              }
+              if (data.close.isEmpty) {
                 return Center(
                   child: Container(
                     height: 1.1,
@@ -309,18 +335,17 @@ class _CupertinoStockOverviewMainRowState
                   ),
                 );
               }
-              print("loaded...");
-              final data = chartSnapshot.data!;
               chartCache[selectedTimeframe] = data;
               currentPercentage = data.percentage;
               currentPriceDelta =
                   data.previousClose * (currentPercentage / 100);
               lastPriceDelta = data.previousClose * (currentPercentage / 100);
-              if (reverseAnimation) {
-                graphAnimationController.reverse();
-              } else {
+              if (graphAnimationController.isDismissed) {
+                reverseAnimation = false;
                 graphAnimationController.forward();
               }
+              // print('go');
+
               return GestureDetector(
                 child: Stack(
                   children: [
@@ -481,6 +506,195 @@ class _CupertinoStockOverviewMainRowState
               );
             },
           ),
+          // child: StreamBuilder<YahooHelperChartData>(
+          //   initialData: chartCache[selectedTimeframe],
+          //   stream: chartController.stream.asBroadcastStream(),
+          //   builder: (context, chartSnapshot) {
+          //     // print(chartSnapshot.connectionState);
+          //     // if (chartSnapshot.connectionState == ConnectionState.waiting) {
+          //     if (chartSnapshot.data == null) {
+          //       // if (["1Y", "5Y", "MAX"].contains(selectedTimeframe)) {}
+          //       print(chartCache["1D"]);
+          //       return Center(
+          //         child: Container(
+          //           height: 1.1,
+          //           width: mediaQuery.size.width,
+          //           color: CupertinoColors.inactiveGray,
+          //         ),
+          //       );
+          //     }
+          //     print("loaded...");
+          //     final data = chartSnapshot.data!;
+          //     chartCache[selectedTimeframe] = data;
+          //     currentPercentage = data.percentage;
+          //     currentPriceDelta =
+          //         data.previousClose * (currentPercentage / 100);
+          //     lastPriceDelta = data.previousClose * (currentPercentage / 100);
+          //     if (reverseAnimation) {
+          //       graphAnimationController.reverse();
+          //     } else {
+          //       graphAnimationController.forward();
+          //     }
+          //     return GestureDetector(
+          //       child: Stack(
+          //         children: [
+          //           // GRAPH
+          //           AnimatedBuilder(
+          //             animation: graphAnimation,
+          //             builder: (context, _) {
+          //               return SizedBox(
+          //                 width: mediaQuery.size.width,
+          //                 child: CustomPaint(
+          //                   painter: GraphPainter(
+          //                     containerSize: Size(mediaQuery.size.width, 245),
+          //                     animationValue: graphAnimation.value,
+          //                     maxSize: Size(mediaQuery.size.width, 245),
+          //                     timeframe: selectedTimeframe,
+          //                     high: data.periodHigh,
+          //                     low: data.periodLow,
+          //                     points: data.close,
+          //                     timestampEnd: data.timestampEnd,
+          //                     timestampStart: data.timestampStart,
+          //                     currentTimestamp:
+          //                         DateTime.now().millisecondsSinceEpoch,
+          //                     lastClosePrice: data.lastClosePrice,
+          //                     previousClose: data.previousClose,
+          //                     opened: widget.priceData.marketState == 'REGULAR',
+          //                     sliderPosition: sliderPosition,
+          //                   ),
+          //                 ),
+          //               );
+          //             },
+          //           ),
+          //           // HIGH / LOW CARDS
+          //           Positioned(
+          //             right: mediaQuery.size.width / 25,
+          //             top: 40,
+          //             bottom: 30,
+          //             child: AnimatedOpacity(
+          //               opacity:
+          //                   graphAnimationController.isCompleted ? 1.0 : 0.0,
+          //               duration: const Duration(milliseconds: 250),
+          //               child: Column(
+          //                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          //                 children: [
+          //                   for (double i in [data.periodHigh, data.periodLow])
+          //                     Container(
+          //                       decoration: BoxDecoration(
+          //                         color: kBlackColor.withOpacity(0.8),
+          //                         borderRadius: BorderRadius.circular(5),
+          //                       ),
+          //                       child: Padding(
+          //                         padding: const EdgeInsets.all(1.5),
+          //                         child: Text(
+          //                           i.toStringAsFixed(2),
+          //                           style: const TextStyle(
+          //                             fontSize: 13,
+          //                             color: CupertinoColors.systemGrey5,
+          //                           ),
+          //                         ),
+          //                       ),
+          //                     ),
+          //                 ],
+          //               ),
+          //             ),
+          //           ),
+          //           // This container allows the gesturedetector to span the entire graph
+          //           Container(
+          //             width: mediaQuery.size.width,
+          //             height: 250,
+          //             color: kBlackColor.withAlpha(0),
+          //           ),
+          //           // SLIDER
+          //           if (sliderShown)
+          //             Positioned(
+          //               top: 0,
+          //               bottom: 0,
+          //               left: sliderPosition,
+          //               child: Container(
+          //                 width: 0.8,
+          //                 color: CupertinoColors.systemGrey4,
+          //               ),
+          //             ),
+          //           if (sliderShown)
+          //             Positioned(
+          //               top: sliderPointY - 2.5,
+          //               left: sliderPosition - 2.5,
+          //               child: Container(
+          //                 width: 5,
+          //                 height: 5,
+          //                 decoration: BoxDecoration(
+          //                   color: sliderPointColor,
+          //                   shape: BoxShape.circle,
+          //                 ),
+          //               ),
+          //             ),
+          //         ],
+          //       ),
+          //       // GESTURES FOR THE SLIDER
+          //       onHorizontalDragUpdate: (details) {
+          //         initSlider(
+          //           details.localPosition.dx,
+          //           data,
+          //           Size(mediaQuery.size.width, 250),
+          //         );
+          //       },
+          //       onHorizontalDragEnd: (details) {
+          //         setState(() {
+          //           sliderShown = false;
+          //           sliderPosition = mediaQuery.size.width;
+          //         });
+          //       },
+          //       onHorizontalDragStart: (details) {
+          //         initSlider(
+          //           details.localPosition.dx,
+          //           data,
+          //           Size(mediaQuery.size.width, 250),
+          //         );
+          //       },
+          //       onHorizontalDragDown: (details) {
+          //         initSlider(
+          //           details.localPosition.dx,
+          //           data,
+          //           Size(mediaQuery.size.width, 250),
+          //         );
+          //       },
+          //       onHorizontalDragCancel: () {
+          //         setState(() {
+          //           sliderShown = false;
+          //           sliderPosition = mediaQuery.size.width;
+          //         });
+          //       },
+          //       onLongPressMoveUpdate: (details) {
+          //         initSlider(
+          //           details.localPosition.dx,
+          //           data,
+          //           Size(mediaQuery.size.width, 250),
+          //         );
+          //       },
+          //       onLongPressStart: (details) {
+          //         initSlider(
+          //           details.localPosition.dx,
+          //           data,
+          //           Size(mediaQuery.size.width, 250),
+          //         );
+          //       },
+          //       onLongPressDown: (details) {
+          //         initSlider(
+          //           details.localPosition.dx,
+          //           data,
+          //           Size(mediaQuery.size.width, 250),
+          //         );
+          //       },
+          //       onLongPressEnd: (details) {
+          //         setState(() {
+          //           sliderShown = false;
+          //           sliderPosition = mediaQuery.size.width;
+          //         });
+          //       },
+          //     );
+          //   },
+          // ),
         ),
         // TIMEFRAME CARDS
         Padding(

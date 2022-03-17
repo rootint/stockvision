@@ -24,7 +24,7 @@ class DataProvider extends ChangeNotifier {
 
   void initTickerData({required String ticker}) async {
     _initTickerPriceStream(ticker: ticker);
-    print('called' + ticker);
+    // print('called' + ticker);
     if (!_tickerData.containsKey(ticker)) {
       _tickerData[ticker] = {};
     }

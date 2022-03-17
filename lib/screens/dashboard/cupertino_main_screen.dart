@@ -6,6 +6,7 @@ import 'package:stockadvisor/helpers/ticker_streams.dart';
 import 'package:stockadvisor/helpers/yahoo.dart';
 import 'package:stockadvisor/models/yahoo_models/price_data.dart';
 import 'package:stockadvisor/providers/cache_provider.dart';
+import 'package:stockadvisor/providers/chart_provider.dart';
 import 'package:stockadvisor/providers/data_provider.dart';
 import 'package:stockadvisor/providers/theme_provider.dart';
 import 'package:stockadvisor/screens/stock_overview/cupertino/main_screen.dart';

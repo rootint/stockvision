@@ -6,8 +6,10 @@ import 'package:stockadvisor/helpers/yahoo.dart';
 import 'package:stockadvisor/models/yahoo_models/chart_data.dart';
 
 class ChartProvider extends ChangeNotifier {
-  late StreamController<YahooHelperChartData> _chartStreamController;
-  late StreamSubscription<YahooHelperChartData> _chartStreamSubscriber;
+  final Map<String, StreamController<YahooHelperChartData>>
+      _chartStreamControllers = {};
+  final Map<String, StreamSubscription<YahooHelperChartData>>
+      _chartStreamSubscribers = {};
   final Map<String, Map<TickerRange, YahooHelperChartData?>?> _chartData = {};
 
   ChartProvider() {
@@ -21,20 +23,41 @@ class ChartProvider extends ChangeNotifier {
   // Ticker Chart Stream handlers
 
   void initChartStream({required String ticker, required TickerRange range}) {
-    _chartStreamController =
+    // _chartStreamSubscribers.forEach((key, value) {
+    //   if (key != ticker) {
+    //     _chartStreamSubscribers[key]!.cancel();
+    //     notifyListeners();
+    //   }
+    // });
+    // _chartStreamControllers.forEach((key, value) {
+    //   if (key != ticker) {
+    //     _chartStreamControllers[key]!.close();
+    //   }
+    // });
+    _chartStreamControllers[ticker] =
         TickerStreams.chartStreamController(ticker: ticker, range: range);
-    _chartStreamSubscriber = _chartStreamController.stream.listen((data) {
+    _chartStreamSubscribers[ticker] =
+        _chartStreamControllers[ticker]!.stream.listen((data) {
       if (!_chartData.containsKey(ticker)) {
-        _chartData[ticker] = null;
+        _chartData[ticker] = {TickerRange.oneDay: null};
       }
       _chartData[ticker]![range] = data;
+      print('$ticker stream going....');
       notifyListeners();
     });
   }
 
-  void removeChartStream({required String ticker}) {
-    _chartStreamController.close();
-    notifyListeners();
+  void removeChartStreams() {
+    _chartStreamControllers.forEach((key, value) {
+      _chartStreamControllers[key]!.close();
+      print('closed! $key');
+    });
+    _chartStreamSubscribers.forEach((key, value) {
+      _chartStreamSubscribers[key]!.cancel();
+    });
+    _chartStreamControllers.clear();
+    _chartStreamSubscribers.clear();
+    // notifyListeners();
   }
 
   YahooHelperChartData getChartData(

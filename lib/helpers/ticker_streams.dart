@@ -22,8 +22,8 @@ class TickerStreams {
     Timer? timer;
 
     void tick() async {
-      final data = await YahooHelper.getCurrentPrice(ticker: ticker);
-      // compute();
+      final data = await YahooHelper.getCurrentPrice(ticker);
+      // final data = await compute(YahooHelper.getCurrentPrice, ticker);
       controller.add(data);
     }
 
@@ -31,7 +31,7 @@ class TickerStreams {
       if (timer == null) {
         tick();
       }
-      timer = Timer.periodic(const Duration(milliseconds: 1200), (_) => tick());
+      timer = Timer.periodic(const Duration(milliseconds: 1100), (_) => tick());
     }
 
     void stop() {
@@ -56,7 +56,8 @@ class TickerStreams {
 
     void tick() async {
       final data = await YahooHelper.getChartData(
-          ticker: ticker, interval: intervalMap[range]!, range: range);
+          {'ticker': ticker, 'interval': intervalMap[range]!, 'range': range});
+      // final data = await compute(YahooHelper.getChartData, {'ticker': ticker, 'interval': intervalMap[range], 'range': range});
       controller.add(data);
     }
 
