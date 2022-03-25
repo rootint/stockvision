@@ -10,6 +10,11 @@ class YahooHelperPriceData {
   final double previousDayClose;
   final String currency;
   final bool extendedMarketAvailable;
+  final double fiftyTwoWeekLow;
+  final double fiftyTwoWeekHigh;
+  final double trailingAnnualDividendRate;
+  final double trailingAnnualDividendYield;
+  final int lastDividendTimestamp;
   YahooHelperPriceData({
     required this.marketState,
     required this.currentMarketPrice,
@@ -22,5 +27,10 @@ class YahooHelperPriceData {
     required this.previousDayClose,
     required this.currency,
     required this.extendedMarketAvailable,
+    required this.fiftyTwoWeekHigh,
+    required this.fiftyTwoWeekLow,
+    required this.trailingAnnualDividendRate,
+    required this.trailingAnnualDividendYield,
+    required this.lastDividendTimestamp,
   });
 }

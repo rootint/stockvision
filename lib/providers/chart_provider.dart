@@ -6,10 +6,12 @@ import 'package:stockadvisor/helpers/yahoo.dart';
 import 'package:stockadvisor/models/yahoo_models/chart_data.dart';
 
 class ChartProvider extends ChangeNotifier {
-  final Map<String, StreamController<YahooHelperChartData>>
-      _chartStreamControllers = {};
-  final Map<String, StreamSubscription<YahooHelperChartData>>
-      _chartStreamSubscribers = {};
+  // final Map<String, StreamController<YahooHelperChartData>>
+  //     _chartStreamControllers = {};
+  // final Map<String, StreamSubscription<YahooHelperChartData>>
+  //     _chartStreamSubscribers = {};
+  late StreamController<YahooHelperChartData> _chartStreamController;
+  late StreamSubscription<YahooHelperChartData> _chartStreamSubscriber;
   final Map<String, Map<TickerRange, YahooHelperChartData?>?> _chartData = {};
 
   ChartProvider() {
@@ -23,21 +25,10 @@ class ChartProvider extends ChangeNotifier {
   // Ticker Chart Stream handlers
 
   void initChartStream({required String ticker, required TickerRange range}) {
-    // _chartStreamSubscribers.forEach((key, value) {
-    //   if (key != ticker) {
-    //     _chartStreamSubscribers[key]!.cancel();
-    //     notifyListeners();
-    //   }
-    // });
-    // _chartStreamControllers.forEach((key, value) {
-    //   if (key != ticker) {
-    //     _chartStreamControllers[key]!.close();
-    //   }
-    // });
-    _chartStreamControllers[ticker] =
+    _chartStreamController =
         TickerStreams.chartStreamController(ticker: ticker, range: range);
-    _chartStreamSubscribers[ticker] =
-        _chartStreamControllers[ticker]!.stream.listen((data) {
+    _chartStreamSubscriber =
+        _chartStreamController.stream.listen((data) {
       if (!_chartData.containsKey(ticker)) {
         _chartData[ticker] = {TickerRange.oneDay: null};
       }
@@ -47,16 +38,19 @@ class ChartProvider extends ChangeNotifier {
     });
   }
 
-  void removeChartStreams() {
-    _chartStreamControllers.forEach((key, value) {
-      _chartStreamControllers[key]!.close();
-      print('closed! $key');
-    });
-    _chartStreamSubscribers.forEach((key, value) {
-      _chartStreamSubscribers[key]!.cancel();
-    });
-    _chartStreamControllers.clear();
-    _chartStreamSubscribers.clear();
+  void removeChartStream() {
+    _chartStreamController.close();
+    _chartStreamSubscriber.cancel();
+    print('chart gone!');
+    // _chartStreamControllers.forEach((key, value) {
+    //   _chartStreamControllers[key]!.close();
+    //   print('closed! $key');
+    // });
+    // _chartStreamSubscribers.forEach((key, value) {
+    //   _chartStreamSubscribers[key]!.cancel();
+    // });
+    // _chartStreamControllers.clear();
+    // _chartStreamSubscribers.clear();
     // notifyListeners();
   }
 

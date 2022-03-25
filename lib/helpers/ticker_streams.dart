@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:stockadvisor/helpers/yahoo.dart';
 import 'package:stockadvisor/models/yahoo_models/chart_data.dart';
+import 'package:stockadvisor/models/yahoo_models/info_data.dart';
 import 'package:stockadvisor/models/yahoo_models/price_data.dart';
 
 class TickerStreams {
@@ -22,16 +23,19 @@ class TickerStreams {
     Timer? timer;
 
     void tick() async {
-      final data = await YahooHelper.getCurrentPrice(ticker);
-      // final data = await compute(YahooHelper.getCurrentPrice, ticker);
-      controller.add(data);
+      if (!controller.isClosed) {
+        final data = await YahooHelper.getCurrentPrice(ticker);
+        // print('$ticker price stream...');
+        // final data = await compute(YahooHelper.getCurrentPrice, ticker);
+        controller.add(data);
+      }
     }
 
     void start() {
       if (timer == null) {
         tick();
       }
-      timer = Timer.periodic(const Duration(milliseconds: 1100), (_) => tick());
+      timer = Timer.periodic(const Duration(milliseconds: 1250), (_) => tick());
     }
 
     void stop() {
@@ -44,7 +48,7 @@ class TickerStreams {
       onCancel: stop,
     );
 
-    return controller;  
+    return controller;
   }
 
   static StreamController<YahooHelperChartData> chartStreamController({
@@ -74,6 +78,37 @@ class TickerStreams {
     }
 
     controller = StreamController<YahooHelperChartData>.broadcast(
+      onListen: start,
+      onCancel: stop,
+    );
+
+    return controller;
+  }
+
+  static StreamController<YahooHelperInfoData> infoStreamController({
+    required String ticker,
+  }) {
+    late StreamController<YahooHelperInfoData> controller;
+    Timer? timer;
+
+    void tick() async {
+      final data = await YahooHelper.getTickerInfo(ticker: ticker);
+      controller.add(data);
+    }
+
+    void start() {
+      if (timer == null) {
+        tick();
+      }
+      timer = Timer.periodic(const Duration(seconds: 150), (_) => tick());
+    }
+
+    void stop() {
+      timer?.cancel();
+      timer = null;
+    }
+
+    controller = StreamController<YahooHelperInfoData>.broadcast(
       onListen: start,
       onCancel: stop,
     );

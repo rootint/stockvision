@@ -26,6 +26,7 @@ class CupertinoDashboardMainScreen extends StatefulWidget {
 class CupertinoDashboardMainScreenState
     extends State<CupertinoDashboardMainScreen> with TickerProviderStateMixin {
   static const _tickerList = [
+    'topData',
     'aapl',
     'amd',
     'nvda',
@@ -78,184 +79,271 @@ class CupertinoDashboardMainScreenState
     return ChangeNotifierProvider(
       create: (_) => CacheProvider(),
       child: CupertinoPageScaffold(
-        navigationBar: CupertinoNavigationBar(
-          brightness:
-              provider.isDarkModeEnabled ? Brightness.dark : Brightness.light,
-          backgroundColor: provider.isDarkModeEnabled
-              ? kCupertinoDarkNavColor.withOpacity(0.7)
-              : kCupertinoLightNavColor.withOpacity(0.7),
-          leading: Row(
-            children: [
-              const CircleAvatar(
-                backgroundColor: kPrimaryColor,
-                radius: 15,
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 10),
-                child: CupertinoButton(
-                  padding: EdgeInsets.zero,
-                  onPressed: () {},
-                  child: Row(
-                    children: [
-                      Text(
-                        userName,
-                        style: TextStyle(color: CupertinoColors.white),
-                      ),
-                      const Icon(
-                        CupertinoIcons.right_chevron,
-                        size: 20,
-                        color: CupertinoColors.systemGrey,
-                      ),
-                    ],
-                  ),
+          navigationBar: CupertinoNavigationBar(
+            brightness:
+                provider.isDarkModeEnabled ? Brightness.dark : Brightness.light,
+            backgroundColor: provider.isDarkModeEnabled
+                ? kCupertinoDarkNavColor.withOpacity(0.7)
+                : kCupertinoLightNavColor.withOpacity(0.7),
+            leading: Row(
+              children: [
+                const CircleAvatar(
+                  backgroundColor: kPrimaryColor,
+                  radius: 15,
                 ),
-              ),
-            ],
-          ),
-          trailing: CupertinoButton(
-            padding: EdgeInsets.zero,
-            child: const Icon(CupertinoIcons.gear_alt_fill,
-                color: CupertinoColors.systemGrey5),
-            onPressed: () {},
-          ),
-        ),
-        child: CupertinoScrollbar(
-          child: ListView(
-            children: [
-              Container(
-                height: 300,
-                color: kCupertinoDarkNavColor.withOpacity(0.7),
-                child: PageView(
-                  controller: mainCardScrollingController,
-                  scrollDirection: Axis.horizontal,
-                  children: [
-                    CupertinoDashboardGraphCard(height: mainCardHeight),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                Padding(
+                  padding: const EdgeInsets.only(left: 10),
+                  child: CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    onPressed: () {},
+                    child: Row(
                       children: [
-                        CupertinoHoldingsCard(height: mainCardHeight),
+                        Text(
+                          userName,
+                          style: TextStyle(color: CupertinoColors.white),
+                        ),
+                        const Icon(
+                          CupertinoIcons.right_chevron,
+                          size: 20,
+                          color: CupertinoColors.systemGrey,
+                        ),
                       ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
-              const Padding(
-                padding: const EdgeInsets.fromLTRB(15, 10, 0, 10),
-                child: Text(
-                  "Maintained stocks",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
-                ),
-              ),
-              ..._tickerList.map(
-                (ticker) {
-                  bool init = false;
-                  return Consumer<DataProvider>(
-                    builder: (ctx, provider, _) {
-                      if (!init) {
-                        provider.initTickerData(ticker: ticker);
-                        init = true;
-                      }
-                      YahooHelperPriceData data = provider.getPriceData(ticker: ticker);
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 15),
-                        child: GestureDetector(
-                          onTap: () {
-                            Navigator.of(context, rootNavigator: true)
-                                .pushNamed(
-                              CupertinoStockOverviewMainScreen.routeName,
-                              arguments: {
-                                'ticker': ticker,
-                                // 'priceStream': priceStream,
-                                'data': data,
-                                // 'imageSvg': null,
-                              },
-                            );
-                          },
-                          child: CupertinoTickerCard(
-                            ticker: ticker,
-                            lastPrice: 0,
-                            lastPriceFunc: _lastPriceCallback,
-                            isLastColorGreen: false,
-                            index: 0,
-                            // priceStream: price,
-                            data: data,
-                            key: Key(ticker),
-                          ),
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
-            ],
+              ],
+            ),
+            trailing: CupertinoButton(
+              padding: EdgeInsets.zero,
+              child: const Icon(CupertinoIcons.gear_alt_fill,
+                  color: CupertinoColors.systemGrey5),
+              onPressed: () {},
+            ),
           ),
-        ),
-        // child: ListView(
-        //   children: [
-        //     ...tickerList
-        //         .map((ticker) => CupertinoTickerCard(ticker, key: Key(ticker)))
-        //   ],
-        // ),
-        // child: ListView.builder(
-        //   itemBuilder: (ctx, index) {
-        //     return CupertinoTickerCard(
-        //       ticker: _tickerList[index],
-        //       lastPrice: _getTickerLastPrice(index)[0],
-        //       lastPriceFunc: _lastPriceCallback,
-        //       isLastColorGreen: _getTickerLastPrice(index)[1],
-        //       index: index,
-        //       key: Key(_tickerList[index]),
-        //     );
-        //   },
-        //   itemCount: _tickerList.length,
-        // ),
+          child: CupertinoScrollbar(
+            child: ListView.builder(
+              itemBuilder: (context, index) {
+                if (index == 0) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        height: 300,
+                        color: kCupertinoDarkNavColor.withOpacity(0.7),
+                        child: PageView(
+                          controller: mainCardScrollingController,
+                          scrollDirection: Axis.horizontal,
+                          children: [
+                            CupertinoDashboardGraphCard(height: mainCardHeight),
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                CupertinoHoldingsCard(height: mainCardHeight),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Padding(
+                        padding: const EdgeInsets.fromLTRB(15, 10, 0, 10),
+                        child: Text(
+                          "Maintained stocks",
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 25),
+                        ),
+                      ),
+                    ],
+                  );
+                } else {
+                  return CupertinoTickerCard(ticker: _tickerList[index], key: Key(_tickerList[index]));
+                }
+              },
+              itemCount: _tickerList.length,
+            ),
+          )
+          // child: CupertinoScrollbar(
+          //   child: ListView(
+          //     children: [
+          //       Container(
+          //         height: 300,
+          //         color: kCupertinoDarkNavColor.withOpacity(0.7),
+          //         child: PageView(
+          //           controller: mainCardScrollingController,
+          //           scrollDirection: Axis.horizontal,
+          //           children: [
+          //             CupertinoDashboardGraphCard(height: mainCardHeight),
+          //             Column(
+          //               mainAxisAlignment: MainAxisAlignment.center,
+          //               children: [
+          //                 CupertinoHoldingsCard(height: mainCardHeight),
+          //               ],
+          //             ),
+          //           ],
+          //         ),
+          //       ),
+          //       const Padding(
+          //         padding: const EdgeInsets.fromLTRB(15, 10, 0, 10),
+          //         child: Text(
+          //           "Maintained stocks",
+          //           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
+          //         ),
+          //       ),
+          //       Expanded(
+          //         child: ListView.builder(
+          //           itemBuilder: ((context, index) {
+          //             var ticker = _tickerList[index];
+          //             bool init = false;
+          //             return Consumer<DataProvider>(
+          //               builder: (ctx, provider, _) {
+          //                 if (!init) {
+          //                   provider.initTickerData(ticker: ticker);
+          //                   init = true;
+          //                 }
+          //                 YahooHelperPriceData data =
+          //                     provider.getPriceData(ticker: ticker);
+          //                 return Padding(
+          //                   padding: const EdgeInsets.symmetric(horizontal: 15),
+          //                   child: GestureDetector(
+          //                     onTap: () {
+          //                       Navigator.of(context, rootNavigator: true)
+          //                           .pushNamed(
+          //                         CupertinoStockOverviewMainScreen.routeName,
+          //                         arguments: {
+          //                           'ticker': ticker,
+          //                           // 'priceStream': priceStream,
+          //                           'data': data,
+          //                           // 'imageSvg': null,
+          //                         },
+          //                       );
+          //                     },
+          //                     child: CupertinoTickerCard(
+          //                       ticker: ticker,
+          //                       lastPrice: 0,
+          //                       lastPriceFunc: _lastPriceCallback,
+          //                       isLastColorGreen: false,
+          //                       index: 0,
+          //                       // priceStream: price,
+          //                       data: data,
+          //                       key: Key(ticker),
+          //                     ),
+          //                   ),
+          //                 );
+          //               },
+          //             );
+          //           }),
+          //           itemCount: _tickerList.length,
+          //         ),
+          //       ),
+          //       // ..._tickerList.map(
+          //       //   (ticker) {
+          //       //     bool init = false;
+          //       //     return Consumer<DataProvider>(
+          //       //       builder: (ctx, provider, _) {
+          //       //         if (!init) {
+          //       //           provider.initTickerData(ticker: ticker);
+          //       //           init = true;
+          //       //         }
+          //       //         YahooHelperPriceData data = provider.getPriceData(ticker: ticker);
+          //       //         return Padding(
+          //       //           padding: const EdgeInsets.symmetric(horizontal: 15),
+          //       //           child: GestureDetector(
+          //       //             onTap: () {
+          //       //               Navigator.of(context, rootNavigator: true)
+          //       //                   .pushNamed(
+          //       //                 CupertinoStockOverviewMainScreen.routeName,
+          //       //                 arguments: {
+          //       //                   'ticker': ticker,
+          //       //                   // 'priceStream': priceStream,
+          //       //                   'data': data,
+          //       //                   // 'imageSvg': null,
+          //       //                 },
+          //       //               );
+          //       //             },
+          //       //             child: CupertinoTickerCard(
+          //       //               ticker: ticker,
+          //       //               lastPrice: 0,
+          //       //               lastPriceFunc: _lastPriceCallback,
+          //       //               isLastColorGreen: false,
+          //       //               index: 0,
+          //       //               // priceStream: price,
+          //       //               data: data,
+          //       //               key: Key(ticker),
+          //       //             ),
+          //       //           ),
+          //       //         );
+          //       //       },
+          //       //     );
+          //       //   },
+          //       // ),
+          //     ],
+          //   ),
+          // ),
+          // child: ListView(
+          //   children: [
+          //     ...tickerList
+          //         .map((ticker) => CupertinoTickerCard(ticker, key: Key(ticker)))
+          //   ],
+          // ),
+          // child: ListView.builder(
+          //   itemBuilder: (ctx, index) {
+          //     return CupertinoTickerCard(
+          //       ticker: _tickerList[index],
+          //       lastPrice: _getTickerLastPrice(index)[0],
+          //       lastPriceFunc: _lastPriceCallback,
+          //       isLastColorGreen: _getTickerLastPrice(index)[1],
+          //       index: index,
+          //       key: Key(_tickerList[index]),
+          //     );
+          //   },
+          //   itemCount: _tickerList.length,
+          // ),
 
-        // wtf why it has the same performance as listview.builder???
-        // child: Stack(
-        //   children: [
-        //     // SafeArea(child: CupertinoDashboardGraphCard()),
-        //     ListView(
-        //       children: [
-        //         Column(
-        //           children: [
-        //             Container(height: 300),
-        //             Container(
-        //               color: CupertinoColors.darkBackgroundGray,
-        //               child: Column(
-        //                 crossAxisAlignment: CrossAxisAlignment.start,
-        //                 children: [
-        //                   Padding(
-        //                     padding: const EdgeInsets.fromLTRB(15, 10, 0, 10),
-        //                     child: Text(
-        //                       "Maintained stocks",
-        //                       style: TextStyle(
-        //                           fontWeight: FontWeight.bold, fontSize: 25),
-        //                     ),
-        //                   ),
-        //                   ..._tickerList.map(
-        //                     (ticker) => Padding(
-        //                       padding: const EdgeInsets.symmetric(horizontal: 15),
-        //                       child: CupertinoTickerCard(
-        //                         ticker: ticker,
-        //                         lastPrice: 0,
-        //                         lastPriceFunc: _lastPriceCallback,
-        //                         isLastColorGreen: false,
-        //                         index: 0,
-        //                         key: Key(ticker),
-        //                       ),
-        //                     ),
-        //                   ),
-        //                 ],
-        //               ),
-        //             ),
-        //             // const DashboardIndexTitleCard(),
-        //           ],
-        //         ),
-        //       ],
-        //     ),
-        //   ],
-        // ),
-      ),
+          // wtf why it has the same performance as listview.builder???
+          // child: Stack(
+          //   children: [
+          //     // SafeArea(child: CupertinoDashboardGraphCard()),
+          //     ListView(
+          //       children: [
+          //         Column(
+          //           children: [
+          //             Container(height: 300),
+          //             Container(
+          //               color: CupertinoColors.darkBackgroundGray,
+          //               child: Column(
+          //                 crossAxisAlignment: CrossAxisAlignment.start,
+          //                 children: [
+          //                   Padding(
+          //                     padding: const EdgeInsets.fromLTRB(15, 10, 0, 10),
+          //                     child: Text(
+          //                       "Maintained stocks",
+          //                       style: TextStyle(
+          //                           fontWeight: FontWeight.bold, fontSize: 25),
+          //                     ),
+          //                   ),
+          //                   ..._tickerList.map(
+          //                     (ticker) => Padding(
+          //                       padding: const EdgeInsets.symmetric(horizontal: 15),
+          //                       child: CupertinoTickerCard(
+          //                         ticker: ticker,
+          //                         lastPrice: 0,
+          //                         lastPriceFunc: _lastPriceCallback,
+          //                         isLastColorGreen: false,
+          //                         index: 0,
+          //                         key: Key(ticker),
+          //                       ),
+          //                     ),
+          //                   ),
+          //                 ],
+          //               ),
+          //             ),
+          //             // const DashboardIndexTitleCard(),
+          //           ],
+          //         ),
+          //       ],
+          //     ),
+          //   ],
+          // ),
+          ),
     );
   }
 }

@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:stockadvisor/helpers/route.dart';
 import 'package:stockadvisor/providers/chart_provider.dart';
 import 'package:stockadvisor/providers/data_provider.dart';
+import 'package:stockadvisor/providers/info_provider.dart';
 import 'package:stockadvisor/providers/theme_provider.dart';
 import 'package:stockadvisor/screens/dashboard/material_main_screen.dart';
 import 'package:stockadvisor/theme.dart';
@@ -31,6 +32,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider<ThemeProvider>(create: (_) => ThemeProvider()),
         ChangeNotifierProvider<DataProvider>(create: (_) => DataProvider()),
         ChangeNotifierProvider<ChartProvider>(create: (_) => ChartProvider()),
+        ChangeNotifierProvider<InfoProvider>(create: (_) => InfoProvider()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, provider, child) {

@@ -2,9 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:stockadvisor/helpers/yahoo.dart';
+import 'package:stockadvisor/models/yahoo_models/chart_data.dart';
 import 'package:stockadvisor/models/yahoo_models/meta_data.dart';
 import 'package:stockadvisor/models/yahoo_models/price_data.dart';
 import 'package:stockadvisor/helpers/ticker_streams.dart';
+import 'package:stockadvisor/models/yahoo_models/spark_data.dart';
+// import 'package:ansicol'
 
 class DataProvider extends ChangeNotifier {
   final Map<String, StreamController<YahooHelperPriceData>>
@@ -13,6 +16,8 @@ class DataProvider extends ChangeNotifier {
       _priceStreamSubscribers = {};
   final Map<String, YahooHelperPriceData?> _priceData = {};
   final Map<String, Map<String, dynamic>> _tickerData = {};
+  YahooHelperSparkData? _sAndPChart;
+  YahooHelperSparkData? _nasdaqChart;
 
   DataProvider() {
     _initCacheFromMemory();
@@ -38,6 +43,10 @@ class DataProvider extends ChangeNotifier {
           await YahooHelper.getStockMetadata(ticker: ticker);
       notifyListeners();
     }
+  //   if(_sAndPChart == null) {
+  //     _sAndPChart = await YahooHelper.getSparkData("^gspc");
+  //     notifyListeners();
+  //   }
   }
 
   // Ticker Price Stream handlers
@@ -57,11 +66,10 @@ class DataProvider extends ChangeNotifier {
     }
   }
 
-  void _removeTickerPriceStream({required String ticker}) {
+  void removeTickerPriceStream({required String ticker}) {
     _priceStreamSubscribers[ticker]!.cancel();
-    _priceStreamControllers[ticker]!.close();
     _priceStreamControllers.remove(ticker);
-    notifyListeners();
+    print('$ticker removed!');
   }
 
   // Getters / Setters
@@ -82,6 +90,23 @@ class DataProvider extends ChangeNotifier {
         previousDayClose: 0.0,
         currency: 'N/A',
         extendedMarketAvailable: false,
+        fiftyTwoWeekHigh: 0.0,
+        fiftyTwoWeekLow: 0.0,
+        trailingAnnualDividendRate: 0.0,
+        trailingAnnualDividendYield: 0.0,
+        lastDividendTimestamp: 0,
+      );
+    }
+  }
+
+  YahooHelperSparkData getSAndPChart() {
+    if (_sAndPChart != null) {
+      return _sAndPChart!;
+    } else {
+      return YahooHelperSparkData(
+        chartPreviousClose: 0.0,
+        close: [],
+        firstTimestamp: 0,
       );
     }
   }
