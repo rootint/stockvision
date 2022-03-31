@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:stockadvisor/helpers/route.dart';
 import 'package:stockadvisor/screens/dashboard/cupertino_main_screen.dart';
 import 'package:stockadvisor/screens/feedback/cupertino_main_screen.dart';
+import 'package:stockadvisor/screens/holdings/cupertino/main_screen.dart';
 import 'package:stockadvisor/screens/settings/cupertino_main_screen.dart';
 
 class CupertinoMainScreen extends StatelessWidget {
@@ -17,8 +18,8 @@ class CupertinoMainScreen extends StatelessWidget {
             label: 'Dashboard',
           ),
           BottomNavigationBarItem(
-            icon: Icon(CupertinoIcons.search),
-            label: 'Tickers',
+            icon: Icon(CupertinoIcons.graph_square),
+            label: 'Holdings',
           ),
           BottomNavigationBarItem(
             icon: Icon(CupertinoIcons.person_alt_circle), // or maybe gear
@@ -49,7 +50,7 @@ class CupertinoMainScreen extends StatelessWidget {
               case 1:
                 return CupertinoTabView(
                   routes: RouteHelper.routes,
-                  builder: (context) => CupertinoDashboardMainScreen(),
+                  builder: (context) => CupertinoHoldingsMainScreen(),
                 );
               case 2:
                 return CupertinoTabView(

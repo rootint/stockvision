@@ -57,9 +57,12 @@ class _CupertinoInfoRowState extends State<CupertinoInfoRow> {
     DateTime lastDividendDate = DateTime.fromMillisecondsSinceEpoch(
         priceData.lastDividendTimestamp * 1000);
     final Map<String, String> _infoMap = {
-      // "P/E": priceData.pe,
       "1 Year Target": tickerInfo.targetMedianPrice.toStringAsFixed(2),
-      "Market State": priceData.marketState,
+      // market cap
+      // p/e ratio
+      // volumes
+      // beta / eps
+      // 52 week range?
     };
 
     List<double> earningsList = [];
@@ -199,209 +202,10 @@ class _CupertinoInfoRowState extends State<CupertinoInfoRow> {
         //           ],
         //         ),
         //       ),
-        //       // Positioned(
-        //       //   left: 4,
-        //       //   top: 10,
-        //       //   child: Column(
-        //       //     children: [
-        //       //       Row(
-        //       //         children: [
-        //       //           Container(
-        //       //             color:
-        //       //           ),
-        //       //         ],
-        //       //       )
-        //       //     ],
-        //       //   ),
-        //       // ),
         //     ],
         //   ),
         // ),
-        // CupertinoInfoCard(
-        //   height: 200,
-        //   title: "PRICE RANGES",
-        //   titleIcon: CupertinoIcons.graph_square_fill,
-        //   rowPosition: RowPosition.left,
-        //   child: Padding(
-        //     padding: const EdgeInsets.symmetric(vertical: 5.0),
-        //     child: Column(
-        //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        //       crossAxisAlignment: CrossAxisAlignment.start,
-        //       children: [
-        //         Column(
-        //           children: [
-        //             Padding(
-        //               padding: const EdgeInsets.symmetric(vertical: 5.0),
-        //               child: Column(
-        //                 crossAxisAlignment: CrossAxisAlignment.start,
-        //                 children: [
-        //                   const Text(
-        //                     'Day Range',
-        //                     style: TextStyle(fontSize: 16),
-        //                   ),
-        //                   Padding(
-        //                     padding:
-        //                         const EdgeInsets.only(top: 10.0, bottom: 4.0),
-        //                     child: Stack(
-        //                       children: [
-        //                         Container(
-        //                           decoration: BoxDecoration(
-        //                               color: kGreenColor,
-        //                               borderRadius: BorderRadius.circular(10),
-        //                               gradient: const LinearGradient(
-        //                                 begin: Alignment.topLeft,
-        //                                 end: Alignment.topRight,
-        //                                 colors: [
-        //                                   kRedColor,
-        //                                   kGreenColor,
-        //                                 ],
-        //                               )),
-        //                           width: double.infinity,
-        //                           height: 7,
-        //                         ),
-        //                         Positioned(
-        //                           left: (mediaQuery.size.width - 50 - 12) *
-        //                               dayPosition,
-        //                           top: -3.5,
-        //                           child: Container(
-        //                             width: 14,
-        //                             height: 14,
-        //                             decoration: BoxDecoration(
-        //                               shape: BoxShape.circle,
-        //                               color: CupertinoColors.white,
-        //                               border: Border.all(
-        //                                 color:
-        //                                     CupertinoColors.darkBackgroundGray,
-        //                                 width: 3.5,
-        //                               ),
-        //                             ),
-        //                           ),
-        //                         ),
-        //                       ],
-        //                     ),
-        //                   ),
-        //                   Row(
-        //                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        //                     children: [
-        //                       Text(priceData.dayLow.toStringAsFixed(2)),
-        //                       Text(priceData.lastClosePrice.toStringAsFixed(2)),
-        //                       Text(priceData.dayHigh.toStringAsFixed(2)),
-        //                     ],
-        //                   ),
-        //                 ],
-        //               ),
-        //             ),
-        //           ],
-        //         ),
-        //         Column(
-        //           children: [
-        //             Padding(
-        //               padding: const EdgeInsets.symmetric(vertical: 5.0),
-        //               child: Column(
-        //                 crossAxisAlignment: CrossAxisAlignment.start,
-        //                 children: [
-        //                   const Text(
-        //                     'Year Range',
-        //                     style: TextStyle(fontSize: 16),
-        //                   ),
-        //                   Padding(
-        //                     padding:
-        //                         const EdgeInsets.only(top: 10.0, bottom: 4.0),
-        //                     child: Stack(
-        //                       children: [
-        //                         Container(
-        //                           decoration: BoxDecoration(
-        //                               color: kGreenColor,
-        //                               borderRadius: BorderRadius.circular(10),
-        //                               gradient: const LinearGradient(
-        //                                 begin: Alignment.topLeft,
-        //                                 end: Alignment.topRight,
-        //                                 colors: [
-        //                                   kRedColor,
-        //                                   kGreenColor,
-        //                                 ],
-        //                               )),
-        //                           width: double.infinity,
-        //                           height: 7,
-        //                         ),
-        //                         Positioned(
-        //                           left: (mediaQuery.size.width - 50 - 12) *
-        //                               yearPosition,
-        //                           top: -3.5,
-        //                           child: Container(
-        //                             width: 14,
-        //                             height: 14,
-        //                             decoration: BoxDecoration(
-        //                               shape: BoxShape.circle,
-        //                               color: CupertinoColors.white,
-        //                               border: Border.all(
-        //                                 color:
-        //                                     CupertinoColors.darkBackgroundGray,
-        //                                 width: 3.5,
-        //                               ),
-        //                             ),
-        //                           ),
-        //                         ),
-        //                       ],
-        //                     ),
-        //                   ),
-        //                   Row(
-        //                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        //                     children: [
-        //                       Text(priceData.fiftyTwoWeekLow.toStringAsFixed(2)),
-        //                       Text(priceData.lastClosePrice.toStringAsFixed(2)),
-        //                       Text(priceData.fiftyTwoWeekHigh.toStringAsFixed(2)),
-        //                     ],
-        //                   ),
-        //                 ],
-        //               ),
-        //             ),
-        //           ],
-        //         ),
-        //       ],
-        //     ),
-        //   ),
-        // ),
-        // CupertinoInfoCard(
-        //   title: "TICKER INFO",
-        //   titleIcon: CupertinoIcons.info_circle_fill,
-        //   rowPosition: RowPosition.left,
-        //   height: 400,
-        //   child: Padding(
-        //     padding: const EdgeInsets.only(top: 9, bottom: 3),
-        //     child: Column(
-        //       children: [
-        //         for (var item in _infoMap.entries)
-        //           Padding(
-        //             padding: const EdgeInsets.symmetric(vertical: 3.5),
-        //             child: Column(
-        //               children: [
-        //                 Row(
-        //                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        //                   children: [
-        //                     Text(
-        //                       item.key,
-        //                       style: TextStyle(
-        //                         fontWeight: FontWeight.w400,
-        //                         color: CupertinoColors.systemGrey5,
-        //                       ),
-        //                     ),
-        //                     Text(
-        //                       item.value,
-        //                       style: TextStyle(fontWeight: FontWeight.w500),
-        //                     ),
-        //                   ],
-        //                 ),
-        //                 Divider(
-        //                   color: CupertinoColors.inactiveGray.withOpacity(0.5),
-        //                 ),
-        //               ],
-        //             ),
-        //           ),
-        //       ],
-        //     ),
-        //   ),
-        // ),
+        //  
         Row(
           children: [
             Flexible(
@@ -425,13 +229,15 @@ class _CupertinoInfoRowState extends State<CupertinoInfoRow> {
                                 tickerInfo.recommendationMean
                                     .toStringAsFixed(1),
                                 style: TextStyle(
-                                    fontSize: 18, fontWeight: FontWeight.bold),
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                             Text(
                               '${_recommendationMap[tickerInfo.recommendationKey]}',
                               maxLines: 1,
-                              style: TextStyle(fontSize: 15),
+                              style: TextStyle(fontSize: 17),
                             ),
                           ],
                         ),

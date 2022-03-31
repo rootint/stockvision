@@ -375,6 +375,13 @@ class YahooHelper {
     String ticker = input['ticker']!;
     TickerInterval interval = input['interval']!;
     TickerRange range = input['range']!;
+    print(apiURL +
+          chartApiString +
+          ticker +
+          '?interval=' +
+          intervalMap[interval]! +
+          '&range=' +
+          rangeMap[range]!);
     try {
       final response = await http.get(Uri.parse(apiURL +
           chartApiString +

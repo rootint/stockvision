@@ -47,7 +47,7 @@ CupertinoThemeData cupertinoDarkThemeData(BuildContext context) {
       ),
       textStyle: TextStyle(letterSpacing: 0.04),
     ),
-    // scaffoldBackgroundColor: kBlackColor,
+    scaffoldBackgroundColor: kBlackColor.withOpacity(0.9),
     // fantastic!!!! vvvv
     // barBackgroundColor: CupertinoColors.systemBackground.withOpacity(0.1),
     // barBackgroundColor: CupertinoColors.black.withOpacity(0.6),

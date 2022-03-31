@@ -73,25 +73,22 @@ class _CupertinoDashboardGraphCardState
       height: widget.height,
       width: mediaQuery.size.width,
       child: Padding(
-        padding: const EdgeInsets.all(15.0),
+        padding: const EdgeInsets.all(10.0),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(20),
           child: Container(
-              color: CupertinoColors.black,
+            color: CupertinoColors.darkBackgroundGray,
+            child: Padding(
+              padding: const EdgeInsets.all(15.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Flexible(
-                    flex: 2,
-                    child: Row(
-                      children: [
-                        Text("Nasdaq"),
-                        Text("0.00%"),
-                      ],
-                    ),
-                  ),
+                  Text("Your Holdings:"),
+                  Text("1250.01\$"),
                 ],
-              )),
+              ),
+            ),
+          ),
         ),
       ),
     );

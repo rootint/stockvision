@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:stockadvisor/constants.dart';
 import 'package:stockadvisor/helpers/ticker_streams.dart';
 import 'package:stockadvisor/helpers/yahoo.dart';
+import 'package:stockadvisor/main.dart';
 import 'package:stockadvisor/models/yahoo_models/price_data.dart';
 import 'package:stockadvisor/providers/cache_provider.dart';
 import 'package:stockadvisor/providers/chart_provider.dart';
@@ -12,6 +13,7 @@ import 'package:stockadvisor/providers/theme_provider.dart';
 import 'package:stockadvisor/screens/stock_overview/cupertino/main_screen.dart';
 import 'package:stockadvisor/widgets/cupertino/dashboard_graph_card.dart';
 import 'package:stockadvisor/widgets/cupertino/holdings_card.dart';
+import 'package:stockadvisor/widgets/cupertino/prediction_ticker_card.dart';
 import 'package:stockadvisor/widgets/cupertino/ticker_card.dart';
 
 class CupertinoDashboardMainScreen extends StatefulWidget {
@@ -59,7 +61,7 @@ class CupertinoDashboardMainScreenState
   final List<bool> _lastTickerColors =
       List<bool>.filled(_tickerList.length, false);
 
-  final double mainCardHeight = 300;
+  final double mainCardHeight = 200;
 
   void _lastPriceCallback(int index, double lastPrice, bool isLastColorGreen) {
     _tickerLastPrices[index] = lastPrice;
@@ -128,9 +130,10 @@ class CupertinoDashboardMainScreenState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Container(
-                        height: 300,
-                        color: kCupertinoDarkNavColor.withOpacity(0.7),
+                        height: 250,
+                        color: kBlackColor.withOpacity(0.9),
                         child: PageView(
+                          
                           controller: mainCardScrollingController,
                           scrollDirection: Axis.horizontal,
                           children: [
@@ -144,18 +147,66 @@ class CupertinoDashboardMainScreenState
                           ],
                         ),
                       ),
+                      // Container(
+                      //   height: 300,
+                      //   width: mediaQuery.size.width,
+                      //   color: CupertinoColors.activeBlue,
+                      //   // child: CupertinoDashboardGraphCard(height: mainCardHeight,)
+                      // ),
                       const Padding(
-                        padding: const EdgeInsets.fromLTRB(15, 10, 0, 10),
+                        padding: EdgeInsets.fromLTRB(10, 10, 0, 10),
                         child: Text(
-                          "Maintained stocks",
+                          "Predicted stocks",
                           style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 25),
+                            fontWeight: FontWeight.w600,
+                            fontSize: 21,
+                          ),
+                        ),
+                      ),
+                      Column(
+                        children: [
+                          CupertinoTickerPredictionCard(
+                            ticker: 'aapl',
+                            key: Key('aapl_prediction'),
+                          ),
+                          CupertinoTickerPredictionCard(
+                            ticker: 'goog',
+                            key: Key('amd_prediction'),
+                          ),
+                          CupertinoTickerPredictionCard(
+                            ticker: 'tsla',
+                            key: Key('tsla_prediction'),
+                          ),
+                        ],
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(10, 10, 0, 10),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Your watchlist",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 21,
+                              ),
+                            ),
+                            CupertinoButton(
+                              padding: EdgeInsets.zero,
+                              child: const Icon(
+                                CupertinoIcons.add,
+                                color: kPrimaryColor,
+                              ),
+                              onPressed: () {},
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   );
                 } else {
-                  return CupertinoTickerCard(ticker: _tickerList[index], key: Key(_tickerList[index]));
+                  return CupertinoTickerCard(
+                      ticker: _tickerList[index], key: Key(_tickerList[index]));
                 }
               },
               itemCount: _tickerList.length,

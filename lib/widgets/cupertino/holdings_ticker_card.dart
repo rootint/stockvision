@@ -3,45 +3,52 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:stockadvisor/constants.dart';
+import 'package:stockadvisor/models/server_models/holdings_ticker.dart';
 import 'package:stockadvisor/models/yahoo_models/meta_data.dart';
 import 'package:stockadvisor/providers/data_provider.dart';
 import 'package:stockadvisor/providers/theme_provider.dart';
 import 'package:stockadvisor/screens/stock_overview/cupertino/main_screen.dart';
 
-class CupertinoTickerCard extends StatefulWidget {
-  final String ticker;
+class CupertinoTickerHoldingsCard extends StatefulWidget {
+  final HoldingsTicker ticker;
   bool init = false;
 
-  CupertinoTickerCard({
+  CupertinoTickerHoldingsCard({
     required this.ticker,
     required Key? key,
   }) : super(key: key);
 
   @override
-  State<CupertinoTickerCard> createState() => _CupertinoTickerCardState();
+  State<CupertinoTickerHoldingsCard> createState() =>
+      _CupertinoTickerHoldingsCardState();
 }
 
-class _CupertinoTickerCardState extends State<CupertinoTickerCard> {
+class _CupertinoTickerHoldingsCardState
+    extends State<CupertinoTickerHoldingsCard> {
   @override
   void deactivate() {
     var provider = Provider.of<DataProvider>(context, listen: false);
-    provider.removeTickerPriceStream(ticker: widget.ticker);
+    provider.removeTickerPriceStream(ticker: widget.ticker.ticker);
     super.deactivate();
   }
 
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
-    final darkModeEnabled = Provider.of<ThemeProvider>(context).isDarkModeEnabled;
+    final darkModeEnabled =
+        Provider.of<ThemeProvider>(context).isDarkModeEnabled;
 
     return Consumer<DataProvider>(
       builder: (context, provider, _) {
         if (!widget.init) {
-          provider.initTickerData(ticker: widget.ticker);
+          provider.initTickerData(ticker: widget.ticker.ticker);
           widget.init = true;
         }
-        var data = provider.getPriceData(ticker: widget.ticker);
-        var tickerData = provider.getTickerData(ticker: widget.ticker);
+        var data = provider.getPriceData(ticker: widget.ticker.ticker);
+        var tickerData = provider.getTickerData(ticker: widget.ticker.ticker);
+        var lastPercentage =
+            data.lastClosePrice / data.previousDayClose * 100 - 100;
+        var priceDelta = data.previousDayClose * lastPercentage / 100;
         return Column(
           children: [
             Padding(
@@ -55,8 +62,11 @@ class _CupertinoTickerCardState extends State<CupertinoTickerCard> {
                     },
                   );
                 },
+                onLongPress: () {
+                  print("asdasd");
+                },
                 child: Container(
-                  height: 70,
+                  height: 90,
                   width: mediaQuery.size.width,
                   color: CupertinoColors.activeBlue.withAlpha(0),
                   child: Row(
@@ -83,9 +93,9 @@ class _CupertinoTickerCardState extends State<CupertinoTickerCard> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                widget.ticker.toUpperCase(),
+                                widget.ticker.ticker.toUpperCase(),
                                 style: TextStyle(
-                                  fontWeight: FontWeight.w500,
+                                  fontWeight: FontWeight.w600,
                                   fontSize: 15,
                                 ),
                               ),
@@ -98,16 +108,26 @@ class _CupertinoTickerCardState extends State<CupertinoTickerCard> {
                                   color: CupertinoColors.systemGrey2,
                                   fontSize: 14,
                                 ),
+                              ),
+                              Text(
+                                '${widget.ticker.amount} pc • ${widget.ticker.avgShareCost}${tickerData['meta'].currency}',
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                                style: TextStyle(
+                                  color: CupertinoColors.systemGrey2,
+                                  fontSize: 14,
+                                ),
                               )
                             ],
                           ),
                         ),
                       ),
                       Flexible(
-                        flex: 2,
+                        flex: 3,
                         fit: FlexFit.tight,
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 8.0, horizontal: 6.0),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             crossAxisAlignment: CrossAxisAlignment.end,
@@ -116,15 +136,18 @@ class _CupertinoTickerCardState extends State<CupertinoTickerCard> {
                                 text: TextSpan(
                                   text: data.lastClosePrice.toStringAsFixed(2),
                                   style: TextStyle(
-                                    color: darkModeEnabled ? CupertinoColors.white : CupertinoColors.darkBackgroundGray,
+                                    color: darkModeEnabled
+                                        ? CupertinoColors.white
+                                        : CupertinoColors.darkBackgroundGray,
                                     fontWeight: FontWeight.w600,
-                                    fontSize: 16,
+                                    fontSize: 15,
                                   ),
                                   children: [
                                     TextSpan(
                                       text: tickerData['meta'].currency,
                                       style: TextStyle(
                                         color: CupertinoColors.systemGrey2,
+                                        fontWeight: FontWeight.w500,
                                         fontSize: 15,
                                       ),
                                     ),
@@ -134,16 +157,28 @@ class _CupertinoTickerCardState extends State<CupertinoTickerCard> {
                                 overflow: TextOverflow.ellipsis,
                               ),
                               Text(
-                                ((data.lastPercentage >= 0) ? '+' : '') +
-                                data.lastPercentage.toStringAsFixed(2) + '%',
+                                ((priceDelta >= 0) ? '+' : '') +
+                                    '${priceDelta.toStringAsFixed(2)}',
                                 style: TextStyle(
-                                  fontSize: 15,
-                                    color: (data.lastPercentage == 0.0 || data.marketState != "REGULAR")
+                                    fontSize: 14,
+                                    color: (priceDelta == 0.0)
+                                        ? CupertinoColors.inactiveGray
+                                        : (priceDelta > 0)
+                                            ? kGreenColor
+                                            : kRedColor),
+                              ),
+                              Text(
+                                ((data.lastPercentage >= 0) ? '+' : '') +
+                                    data.lastPercentage.toStringAsFixed(2) +
+                                    '%',
+                                style: TextStyle(
+                                    fontSize: 14,
+                                    color: (data.lastPercentage == 0.0)
                                         ? CupertinoColors.inactiveGray
                                         : (data.lastPercentage > 0)
                                             ? kGreenColor
                                             : kRedColor),
-                              )
+                              ),
                             ],
                           ),
                         ),

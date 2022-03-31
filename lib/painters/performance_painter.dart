@@ -2,11 +2,11 @@ import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:flutter/cupertino.dart';
 import 'package:stockadvisor/constants.dart';
-import 'package:stockadvisor/models/yahoo_models/spark_data.dart';
+import 'package:stockadvisor/models/yahoo_models/chart_data.dart';
 
 class PerformancePainter extends CustomPainter {
-  final YahooHelperSparkData tickerData;
-  final YahooHelperSparkData sAndPData;
+  final YahooHelperChartData tickerData;
+  final YahooHelperChartData sAndPData;
   final Size containerSize;
   final double leftPadding;
 
@@ -27,11 +27,11 @@ class PerformancePainter extends CustomPainter {
       final sAndPPaint = Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1
-        ..color = sAndPIncreasing ? kPrimaryColor : kSecondaryColor;
+        ..color = kPrimaryColor;
       final tickerPaint = Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1
-        ..color = tickerIncreasing ? kGreenColor : kRedColor;
+        ..color = kGreenColor;
 
       final sAndPLow = sAndPData.close.reduce(math.min);
       final sAndPHigh = sAndPData.close.reduce(math.max);
@@ -52,12 +52,12 @@ class PerformancePainter extends CustomPainter {
           tickerPercentage /
           maxPercentage;
 
-      // final dx = (containerSize.width - leftPadding / 2) / sAndPData.close.length;
       final dx = (containerSize.width + leftPadding / 2) / sAndPData.close.length;
       double prevTickerY = containerSize.height -
           (tickerData.close[0] - tickerLow) * tickerScaleFactor;
       double prevSAndPY = containerSize.height -
           (sAndPData.close[0] - sAndPLow) * sAndPScaleFactor;
+      print(dx.toString() + " " + sAndPScaleFactor.toString());
       for (int i = 0; i < sAndPData.close.length; i++) {
         if (dx * i < containerSize.width) {
           final tickerY = containerSize.height -
@@ -79,19 +79,15 @@ class PerformancePainter extends CustomPainter {
         }
       }
       canvas.drawLine(
-        Offset(containerSize.width, prevSAndPY),
-        Offset(containerSize.width - dx, prevSAndPY),
-        sAndPPaint,
-      );
-      canvas.drawLine(
         Offset(containerSize.width, prevTickerY),
         Offset(containerSize.width - dx, prevTickerY),
         tickerPaint,
       );
-      // final sAndPPercentage =
-      // for ()
-      // canvas.drawLine(Offset(containerSize.width, containerSize.height), Offset(-leftPadding, containerSize.height), sAndPPaint);
-      // canvas.drawLine(Offset(-leftPadding, 0), Offset(containerSize.width, 0), tickerPaint);
+      canvas.drawLine(
+        Offset(containerSize.width, prevSAndPY),
+        Offset(containerSize.width - dx, prevSAndPY),
+        sAndPPaint,
+      );
     }
   }
 

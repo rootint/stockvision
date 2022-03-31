@@ -113,7 +113,7 @@ class DataProvider extends ChangeNotifier {
 
   Map<String, dynamic> getTickerData({required String ticker}) {
     if (!_tickerData.containsKey(ticker) ||
-        !_tickerData[ticker]!.containsKey('tickerSvg')) {
+        !_tickerData[ticker]!.containsKey('tickerSvg') || !_tickerData[ticker]!.containsKey('meta')) {
       return {
         'tickerSvg': '<svg width="56" height="56"></svg>',
         'meta': YahooHelperMetaData(

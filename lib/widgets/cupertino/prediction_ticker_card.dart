@@ -8,20 +8,22 @@ import 'package:stockadvisor/providers/data_provider.dart';
 import 'package:stockadvisor/providers/theme_provider.dart';
 import 'package:stockadvisor/screens/stock_overview/cupertino/main_screen.dart';
 
-class CupertinoTickerCard extends StatefulWidget {
+class CupertinoTickerPredictionCard extends StatefulWidget {
   final String ticker;
   bool init = false;
 
-  CupertinoTickerCard({
+  CupertinoTickerPredictionCard({
     required this.ticker,
     required Key? key,
   }) : super(key: key);
 
   @override
-  State<CupertinoTickerCard> createState() => _CupertinoTickerCardState();
+  State<CupertinoTickerPredictionCard> createState() =>
+      _CupertinoTickerPredictionCardState();
 }
 
-class _CupertinoTickerCardState extends State<CupertinoTickerCard> {
+class _CupertinoTickerPredictionCardState
+    extends State<CupertinoTickerPredictionCard> {
   @override
   void deactivate() {
     var provider = Provider.of<DataProvider>(context, listen: false);
@@ -56,7 +58,7 @@ class _CupertinoTickerCardState extends State<CupertinoTickerCard> {
                   );
                 },
                 child: Container(
-                  height: 70,
+                  height: 90,
                   width: mediaQuery.size.width,
                   color: CupertinoColors.activeBlue.withAlpha(0),
                   child: Row(
@@ -98,16 +100,26 @@ class _CupertinoTickerCardState extends State<CupertinoTickerCard> {
                                   color: CupertinoColors.systemGrey2,
                                   fontSize: 14,
                                 ),
+                              ),
+                              Text(
+                                'Prediction:',
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  color: CupertinoColors.systemGrey4,
+                                  fontSize: 15,
+                                ),
                               )
                             ],
                           ),
                         ),
                       ),
                       Flexible(
-                        flex: 2,
+                        flex: 3,
                         fit: FlexFit.tight,
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 6.0),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             crossAxisAlignment: CrossAxisAlignment.end,
@@ -133,12 +145,30 @@ class _CupertinoTickerCardState extends State<CupertinoTickerCard> {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
+                              // Text(
+                              //   ((data.lastPercentage >= 0) ? '+' : '') +
+                              //       data.lastPercentage.toStringAsFixed(2) +
+                              //       '%',
+                              //   style: TextStyle(
+                              //       fontSize: 15,
+                              //       color: (data.lastPercentage == 0.0)
+                              //           ? CupertinoColors.inactiveGray
+                              //           : (data.lastPercentage > 0)
+                              //               ? kGreenColor
+                              //               : kRedColor),
+                              // ),
                               Text(
-                                ((data.lastPercentage >= 0) ? '+' : '') +
-                                data.lastPercentage.toStringAsFixed(2) + '%',
+                                'At close:',
                                 style: TextStyle(
                                   fontSize: 15,
-                                    color: (data.lastPercentage == 0.0 || data.marketState != "REGULAR")
+                                )
+                              ),
+                              Text(
+                                '190.00 / +5.01%',
+                                style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: (data.lastPercentage == 0.0)
                                         ? CupertinoColors.inactiveGray
                                         : (data.lastPercentage > 0)
                                             ? kGreenColor
@@ -153,6 +183,12 @@ class _CupertinoTickerCardState extends State<CupertinoTickerCard> {
                 ),
               ),
             ),
+            // Container(
+            //   width: mediaQuery.size.width - 20,
+            //   height: 0.2,
+            //   color: CupertinoColors.systemGrey3,
+            //   alignment: Alignment.center,
+            // )
           ],
         );
       },
