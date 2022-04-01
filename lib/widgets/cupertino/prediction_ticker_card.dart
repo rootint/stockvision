@@ -69,7 +69,7 @@ class _CupertinoTickerPredictionCardState
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(15),
                           child: SvgPicture.string(
-                            tickerData['tickerSvg'],
+                            tickerData.iconSvg,
                             height: 47,
                             // fit: BoxFit.scaleDown,
                           ),
@@ -92,7 +92,7 @@ class _CupertinoTickerPredictionCardState
                                 ),
                               ),
                               Text(
-                                tickerData['meta'].companyLongName,
+                                tickerData.companyLongName,
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 1,
                                 style: TextStyle(
@@ -134,7 +134,7 @@ class _CupertinoTickerPredictionCardState
                                   ),
                                   children: [
                                     TextSpan(
-                                      text: tickerData['meta'].currency,
+                                      text: tickerData.currency,
                                       style: TextStyle(
                                         color: CupertinoColors.systemGrey2,
                                         fontSize: 15,

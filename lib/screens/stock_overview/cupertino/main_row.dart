@@ -7,7 +7,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:stockadvisor/constants.dart';
-import 'package:stockadvisor/helpers/ticker_streams.dart';
 import 'package:stockadvisor/models/yahoo_models/chart_data.dart';
 import 'package:stockadvisor/models/yahoo_models/meta_data.dart';
 import 'package:stockadvisor/models/yahoo_models/price_data.dart';
@@ -18,7 +17,7 @@ import 'package:stockadvisor/screens/stock_overview/constants.dart';
 class CupertinoStockOverviewMainRow extends StatefulWidget {
   final String ticker;
   final YahooHelperPriceData priceData;
-  final Map<String, dynamic> tickerData;
+  final YahooHelperMetaData tickerData;
   // final YahooHelperChartData chartData;
   const CupertinoStockOverviewMainRow({
     required this.ticker,
@@ -132,13 +131,6 @@ class _CupertinoStockOverviewMainRowState
   }
 
   @override
-  void deactivate() {
-    final chartProvider = Provider.of<ChartProvider>(context);
-    chartProvider.removeChartStream();
-    super.deactivate();
-  }
-
-  @override
   void dispose() {
     graphAnimationController.dispose();
     super.dispose();
@@ -148,12 +140,6 @@ class _CupertinoStockOverviewMainRowState
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     final chartProvider = Provider.of<ChartProvider>(context);
-    // if (!isStreamInitialized) {
-    //   chartProvider.initChartStream(
-    //       ticker: widget.ticker, range: rangeConversionMap[selectedTimeframe]!);
-    //   print('stream init');
-    //   isStreamInitialized = true;
-    // }
 
     double prevPeriodClose = 0.0;
     if (firstLoading) {
@@ -190,8 +176,8 @@ class _CupertinoStockOverviewMainRowState
                 padding: const EdgeInsets.all(4),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(20),
-                  child: SvgPicture.string(widget.tickerData['tickerSvg'],
-                      height: 62),
+                  child:
+                      SvgPicture.string(widget.tickerData.iconSvg, height: 62),
                 ),
               ),
               // TICKER NAME
@@ -220,9 +206,7 @@ class _CupertinoStockOverviewMainRowState
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8.0),
                   child: Text(
-                    widget.tickerData.containsKey('meta')
-                        ? '${(widget.tickerData['meta']! as YahooHelperMetaData).companyLongName} • ${widget.priceData.currency} • ${widget.priceData.marketState == "REGULAR" ? "Open" : "Closed"}'
-                        : 'Loading...',
+                    '${widget.tickerData.companyLongName} • ${widget.priceData.currency} • ${widget.priceData.marketState == "REGULAR" ? "Open" : "Closed"}',
                     textAlign: TextAlign.center,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

@@ -1,7 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:stockadvisor/helpers/ticker_streams.dart';
 import 'package:stockadvisor/helpers/yahoo.dart';
 import 'package:stockadvisor/models/yahoo_models/info_data.dart';
 import 'package:stockadvisor/models/yahoo_models/spark_data.dart';
@@ -22,9 +22,41 @@ class InfoProvider extends ChangeNotifier {
 
   // Ticker Info Stream handlers
 
+  StreamController<YahooHelperInfoData> _infoStreamController({
+    required String ticker,
+  }) {
+    late StreamController<YahooHelperInfoData> controller;
+    Timer? timer;
+
+    void tick() async {
+      final data = await YahooHelper.getTickerInfo(ticker);
+      // final data = await compute(YahooHelper.getTickerInfo, ticker);
+      controller.add(data);
+    }
+
+    void start() {
+      if (timer == null) {
+        tick();
+      }
+      timer = Timer.periodic(const Duration(seconds: 175), (_) => tick());
+    }
+
+    void stop() {
+      timer?.cancel();
+      timer = null;
+    }
+
+    controller = StreamController<YahooHelperInfoData>.broadcast(
+      onListen: start,
+      onCancel: stop,
+    );
+
+    return controller;
+  }
+
   void initInfoStream({required String ticker}) async {
     // _tickerGraph ??= await YahooHelper.getSparkData(ticker);
-    _streamController = TickerStreams.infoStreamController(ticker: ticker);
+    _streamController = _infoStreamController(ticker: ticker);
     _streamSubscriber = _streamController.stream.listen((data) {
       _infoData[ticker] = data;
       print('$ticker stream going....');

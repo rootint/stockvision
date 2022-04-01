@@ -77,7 +77,7 @@ class _CupertinoTickerHoldingsCardState
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(15),
                           child: SvgPicture.string(
-                            tickerData['tickerSvg'],
+                            tickerData.iconSvg,
                             height: 47,
                             // fit: BoxFit.scaleDown,
                           ),
@@ -100,7 +100,7 @@ class _CupertinoTickerHoldingsCardState
                                 ),
                               ),
                               Text(
-                                tickerData['meta'].companyLongName,
+                                tickerData.companyLongName,
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 1,
                                 style: TextStyle(
@@ -110,7 +110,7 @@ class _CupertinoTickerHoldingsCardState
                                 ),
                               ),
                               Text(
-                                '${widget.ticker.amount} pc • ${widget.ticker.avgShareCost}${tickerData['meta'].currency}',
+                                '${widget.ticker.amount} pc • ${widget.ticker.avgShareCost}${tickerData.currency}',
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 1,
                                 style: TextStyle(
@@ -144,7 +144,7 @@ class _CupertinoTickerHoldingsCardState
                                   ),
                                   children: [
                                     TextSpan(
-                                      text: tickerData['meta'].currency,
+                                      text: tickerData.currency,
                                       style: TextStyle(
                                         color: CupertinoColors.systemGrey2,
                                         fontWeight: FontWeight.w500,

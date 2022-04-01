@@ -82,116 +82,54 @@ class YahooHelper {
   ///
   /// Throws [Exception] if the response was faulty.
   static Future<YahooHelperPriceData> getCurrentPrice(String ticker) async {
-    bool last = false;
-    if (last) {
-      // try {
-      //   final response = await http
-      //       .get(Uri.parse(apiURL + metaApiString + ticker + "?modules=price"));
-      //   if (response.statusCode == 200) {
-      //     final Map<String, dynamic> responseParsed =
-      //         jsonDecode(response.body)['quoteSummary']['result'][0]["price"];
-      //     final String marketState = responseParsed['marketState'];
-      //     double? currentMarketPrice;
-      //     double? currentPercentage;
-      //     bool available = true;
-      //     if (marketState == 'PRE') {
-      //       if (responseParsed["preMarketPrice"] is! double &&
-      //           responseParsed["preMarketPrice"].containsKey("raw")) {
-      //         currentMarketPrice = responseParsed["preMarketPrice"]?["raw"];
-      //         currentPercentage =
-      //             responseParsed["preMarketChangePercent"]["raw"] * 100;
-      //       } else {
-      //         available = false;
-      //       }
-      //     } else if (marketState == 'POST' ||
-      //         marketState == 'POSTPOST' ||
-      //         marketState == 'PREPRE' ||
-      //         marketState == "CLOSED") {
-      //       if (responseParsed["postMarketPrice"].containsKey("raw")) {
-      //         currentMarketPrice = responseParsed["postMarketPrice"]?["raw"];
-      //         currentPercentage =
-      //             responseParsed["postMarketChangePercent"]["raw"] * 100;
-      //       } else {
-      //         available = false;
-      //       }
-      //     }
-
-      //     return YahooHelperPriceData(
-      //       marketState: marketState,
-      //       currentMarketPrice: currentMarketPrice ??
-      //           ((responseParsed["regularMarketPrice"] is double)
-      //               ? responseParsed["regularMarketPrice"]
-      //               : responseParsed["regularMarketPrice"]["raw"]),
-      //       currentPercentage: currentPercentage ??
-      //           responseParsed["regularMarketChangePercent"]["raw"],
-      //       dayHigh: responseParsed["regularMarketDayHigh"]["raw"],
-      //       dayLow: responseParsed["regularMarketDayLow"]["raw"],
-      //       lastClosePrice: responseParsed["regularMarketPrice"]["raw"],
-      //       lastPercentage: responseParsed["regularMarketChangePercent"]["raw"],
-      //       pe: "0.00",
-      //       previousDayClose: responseParsed["regularMarketPreviousClose"]
-      //           ["raw"],
-      //       currency: responseParsed['currency'],
-      //       extendedMarketAvailable: available &&
-      //           (responseParsed.containsKey("postMarketPrice") ||
-      //               responseParsed.containsKey("preMarketPrice")),
-      //     );
-      //   }
-      //   throw Exception("getCurrentPrice ${response.statusCode} Error");
-      // } catch (error) {
-      //   rethrow;
-      // }
-    } else {
-      try {
-        final response = await http
-            .get(Uri.parse(apiURL + mainApiString + "?symbols=" + ticker));
-        // print(Uri.parse(apiURL + mainApiString + "?symbols=" + ticker));
-        if (response.statusCode == 200) {
-          final Map<String, dynamic> responseParsed =
-              jsonDecode(response.body)["quoteResponse"]["result"][0];
-          // print(responseParsed);
-          final marketState = responseParsed["marketState"];
-          double? currentMarketPrice;
-          double? currentPercentage;
-          if (marketState == 'PRE') {
-            currentMarketPrice = responseParsed["preMarketPrice"];
-            currentPercentage = responseParsed["preMarketChangePercent"];
-          } else if (marketState == 'POST' ||
-              marketState == 'POSTPOST' ||
-              marketState == 'PREPRE' ||
-              marketState == "CLOSED") {
-            currentMarketPrice = responseParsed["postMarketPrice"];
-            currentPercentage = responseParsed["postMarketChangePercent"];
-          }
-          return YahooHelperPriceData(
-            marketState: marketState,
-            currentMarketPrice:
-                currentMarketPrice ?? responseParsed["regularMarketPrice"],
-            currentPercentage: currentPercentage ??
-                responseParsed["regularMarketChangePercent"],
-            dayHigh: responseParsed["regularMarketDayHigh"],
-            dayLow: responseParsed["regularMarketDayLow"],
-            lastClosePrice: responseParsed["regularMarketPrice"],
-            lastPercentage: responseParsed["regularMarketChangePercent"],
-            pe: responseParsed["trailingPE"] ?? 'N/A',
-            previousDayClose: responseParsed["regularMarketPreviousClose"],
-            currency: responseParsed['currency'],
-            extendedMarketAvailable:
-                responseParsed.containsKey("postMarketPrice") ||
-                    responseParsed.containsKey("preMarketPrice"),
-            fiftyTwoWeekHigh: responseParsed["fiftyTwoWeekHigh"],
-            fiftyTwoWeekLow: responseParsed["fiftyTwoWeekLow"],
-            trailingAnnualDividendRate:
-                responseParsed["trailingAnnualDividendRate"] ?? 0,
-            trailingAnnualDividendYield:
-                responseParsed["trailingAnnualDividendYield"] ?? 0,
-            lastDividendTimestamp: responseParsed["dividendDate"] ?? 0,
-          );
+    try {
+      final response = await http
+          .get(Uri.parse(apiURL + mainApiString + "?symbols=" + ticker));
+      // print(Uri.parse(apiURL + mainApiString + "?symbols=" + ticker));
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseParsed =
+            jsonDecode(response.body)["quoteResponse"]["result"][0];
+        final marketState = responseParsed["marketState"];
+        double? currentMarketPrice;
+        double? currentPercentage;
+        if (marketState == 'PRE') {
+          currentMarketPrice = responseParsed["preMarketPrice"];
+          currentPercentage = responseParsed["preMarketChangePercent"];
+        } else if (marketState == 'POST' ||
+            marketState == 'POSTPOST' ||
+            marketState == 'PREPRE' ||
+            marketState == "CLOSED") {
+          currentMarketPrice = responseParsed["postMarketPrice"];
+          currentPercentage = responseParsed["postMarketChangePercent"];
         }
-        throw Exception("getCurrentPrice ${response.statusCode} Error");
-      } catch (error) {
-        rethrow;
+        return YahooHelperPriceData(
+          marketState: marketState,
+          currentMarketPrice:
+              currentMarketPrice ?? responseParsed["regularMarketPrice"],
+          currentPercentage:
+              currentPercentage ?? responseParsed["regularMarketChangePercent"],
+          dayHigh: responseParsed["regularMarketDayHigh"],
+          dayLow: responseParsed["regularMarketDayLow"],
+          lastClosePrice: responseParsed["regularMarketPrice"],
+          lastPercentage: responseParsed["regularMarketChangePercent"],
+          pe: responseParsed["trailingPE"] ?? 'N/A',
+          previousDayClose: responseParsed["regularMarketPreviousClose"],
+          currency: responseParsed['currency'],
+          extendedMarketAvailable:
+              responseParsed.containsKey("postMarketPrice") ||
+                  responseParsed.containsKey("preMarketPrice"),
+          fiftyTwoWeekHigh: responseParsed["fiftyTwoWeekHigh"],
+          fiftyTwoWeekLow: responseParsed["fiftyTwoWeekLow"],
+          trailingAnnualDividendRate:
+              responseParsed["trailingAnnualDividendRate"] ?? 0,
+          trailingAnnualDividendYield:
+              responseParsed["trailingAnnualDividendYield"] ?? 0,
+          lastDividendTimestamp: responseParsed["dividendDate"] ?? 0,
+        );
       }
+      throw Exception("getCurrentPrice ${response.statusCode} Error");
+    } catch (error) {
+      rethrow;
     }
   }
 
@@ -211,7 +149,7 @@ class YahooHelper {
   /// string is ~8% faster.
   ///
   /// Throws [Exception] if either Yahoo or TradingView response failed.
-  static Future<String> getPictureLink({required String ticker}) async {
+  static Future<String> getIconSvg({required String ticker}) async {
     try {
       String marketName = "";
       final responseYahoo = await http
@@ -289,8 +227,7 @@ class YahooHelper {
   /// Returns ticker's info [YahooHelperInfoData] for cards under the graph.
   ///
   /// Throws [Exception] if a response failed.
-  static Future<YahooHelperInfoData> getTickerInfo(
-      {required String ticker}) async {
+  static Future<YahooHelperInfoData> getTickerInfo(String ticker) async {
     try {
       final response = await http.get(Uri.parse(apiURL +
           metaApiString +
@@ -338,7 +275,8 @@ class YahooHelper {
     }
   }
 
-  /// Returns ticker's metadata [YahooHelperMetaData]. (currency, company name, market cap & stock exchange name)
+  /// Returns ticker's metadata [YahooHelperMetaData]. (currency, company name, market cap, stock exchange name
+  /// and the iconSvg)
   ///
   /// Throws [Exception] if a response failed.
   static Future<YahooHelperMetaData> getStockMetadata(
@@ -354,6 +292,7 @@ class YahooHelper {
           companyLongName: responseParsed["longName"] ?? 'N/A',
           marketCap: responseParsed["marketCap"]["fmt"],
           exchangeName: responseParsed["exchangeName"],
+          iconSvg: await getIconSvg(ticker: ticker),
         );
       }
       throw Exception("getStockMetadata ${response.statusCode} Error");
@@ -376,12 +315,12 @@ class YahooHelper {
     TickerInterval interval = input['interval']!;
     TickerRange range = input['range']!;
     print(apiURL +
-          chartApiString +
-          ticker +
-          '?interval=' +
-          intervalMap[interval]! +
-          '&range=' +
-          rangeMap[range]!);
+        chartApiString +
+        ticker +
+        '?interval=' +
+        intervalMap[interval]! +
+        '&range=' +
+        rangeMap[range]!);
     try {
       final response = await http.get(Uri.parse(apiURL +
           chartApiString +

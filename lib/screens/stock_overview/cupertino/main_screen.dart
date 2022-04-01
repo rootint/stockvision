@@ -19,7 +19,7 @@ class CupertinoStockOverviewMainScreen extends StatefulWidget {
 
 class CupertinoStockOverviewMainScreenState
     extends State<CupertinoStockOverviewMainScreen>
-    with TickerProviderStateMixin { 
+    with TickerProviderStateMixin {
   bool streamsInitialized = false;
   final scrollController = ScrollController();
 
@@ -80,9 +80,7 @@ class CupertinoStockOverviewMainScreenState
               Padding(
                 padding: const EdgeInsets.only(bottom: 2.0),
                 child: Text(
-                  tickerData.containsKey('meta')
-                      ? tickerData['meta']!.companyLongName
-                      : 'Loading...',
+                  tickerData.companyLongName,
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
                   style: TextStyle(fontWeight: FontWeight.w500),

@@ -67,7 +67,7 @@ class _CupertinoTickerCardState extends State<CupertinoTickerCard> {
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(15),
                           child: SvgPicture.string(
-                            tickerData['tickerSvg'],
+                            tickerData.iconSvg,
                             height: 47,
                             // fit: BoxFit.scaleDown,
                           ),
@@ -90,7 +90,7 @@ class _CupertinoTickerCardState extends State<CupertinoTickerCard> {
                                 ),
                               ),
                               Text(
-                                tickerData['meta'].companyLongName,
+                                tickerData.companyLongName,
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 1,
                                 style: TextStyle(
@@ -122,7 +122,7 @@ class _CupertinoTickerCardState extends State<CupertinoTickerCard> {
                                   ),
                                   children: [
                                     TextSpan(
-                                      text: tickerData['meta'].currency,
+                                      text: tickerData.currency,
                                       style: TextStyle(
                                         color: CupertinoColors.systemGrey2,
                                         fontSize: 15,
