@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:stockadvisor/helpers/route.dart';
 import 'package:stockadvisor/screens/dashboard/cupertino_main_screen.dart';
 import 'package:stockadvisor/screens/feedback/cupertino_main_screen.dart';
@@ -6,7 +7,9 @@ import 'package:stockadvisor/screens/holdings/cupertino/main_screen.dart';
 import 'package:stockadvisor/screens/settings/cupertino_main_screen.dart';
 
 class CupertinoMainScreen extends StatelessWidget {
-  const CupertinoMainScreen({Key? key}) : super(key: key);
+  CupertinoMainScreen({Key? key}) : super(key: key);
+
+  final CupertinoTabController tabController = CupertinoTabController();
 
   @override
   Widget build(BuildContext context) {
@@ -75,6 +78,7 @@ class CupertinoMainScreen extends StatelessWidget {
           },
         );
       },
+      controller: tabController,
     );
   }
 }

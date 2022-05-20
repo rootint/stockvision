@@ -134,8 +134,8 @@ class _CupertinoTickerCardState extends State<CupertinoTickerCard> {
                                 overflow: TextOverflow.ellipsis,
                               ),
                               Text(
-                                ((data.lastPercentage >= 0) ? '+' : '') +
-                                data.lastPercentage.toStringAsFixed(2) + '%',
+                                ((data.lastPercentage >= 0) ? '↑' : '↓') +
+                                data.lastPercentage.abs().toStringAsFixed(2) + '%',
                                 style: TextStyle(
                                   fontSize: 15,
                                     color: (data.lastPercentage == 0.0 || data.marketState != "REGULAR")

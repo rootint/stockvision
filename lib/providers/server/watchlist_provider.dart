@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 class WatchlistProvider extends ChangeNotifier {
   List<String> _watchlist = [
+    'begin',
     'aapl',
     'amd',
     'nvda',
@@ -38,7 +39,7 @@ class WatchlistProvider extends ChangeNotifier {
     // once again, authenticated requests
   }
 
-  void sendWatchlist() async{
+  void sendWatchlist() async {
     // send the new data to the server
   }
 

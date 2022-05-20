@@ -7,6 +7,7 @@ import 'package:stockadvisor/models/server_models/holdings_ticker.dart';
 import 'package:stockadvisor/models/yahoo_models/meta_data.dart';
 import 'package:stockadvisor/providers/data_provider.dart';
 import 'package:stockadvisor/providers/theme_provider.dart';
+import 'package:stockadvisor/screens/holdings/cupertino/alltime_provider.dart';
 import 'package:stockadvisor/screens/stock_overview/cupertino/main_screen.dart';
 
 class CupertinoTickerHoldingsCard extends StatefulWidget {
@@ -37,6 +38,7 @@ class _CupertinoTickerHoldingsCardState
     final mediaQuery = MediaQuery.of(context);
     final darkModeEnabled =
         Provider.of<ThemeProvider>(context).isDarkModeEnabled;
+    final isAllTime = Provider.of<AllTimeProvider>(context).isSwitchEnabled;
 
     return Consumer<DataProvider>(
       builder: (context, provider, _) {
@@ -46,9 +48,16 @@ class _CupertinoTickerHoldingsCardState
         }
         var data = provider.getPriceData(ticker: widget.ticker.ticker);
         var tickerData = provider.getTickerData(ticker: widget.ticker.ticker);
-        var lastPercentage =
+        late double lastPercentage;
+        late double priceDelta;
+        if (!isAllTime) {
+          lastPercentage =
             data.lastClosePrice / data.previousDayClose * 100 - 100;
-        var priceDelta = data.previousDayClose * lastPercentage / 100;
+          priceDelta = data.previousDayClose * lastPercentage / 100;
+        } else {
+          lastPercentage = data.lastClosePrice / widget.ticker.avgShareCost * 100 - 100;
+          priceDelta = widget.ticker.avgShareCost * lastPercentage / 100 * widget.ticker.amount;
+        }
         return Column(
           children: [
             Padding(
@@ -110,7 +119,7 @@ class _CupertinoTickerHoldingsCardState
                                 ),
                               ),
                               Text(
-                                '${widget.ticker.amount} pc • ${widget.ticker.avgShareCost}${tickerData.currency}',
+                                '${widget.ticker.amount} pc • ${widget.ticker.avgShareCost.toStringAsFixed(2)}${tickerData.currency}',
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 1,
                                 style: TextStyle(
@@ -157,8 +166,8 @@ class _CupertinoTickerHoldingsCardState
                                 overflow: TextOverflow.ellipsis,
                               ),
                               Text(
-                                ((priceDelta >= 0) ? '+' : '') +
-                                    '${priceDelta.toStringAsFixed(2)}',
+                                ((priceDelta >= 0) ? '↑' : '↓') +
+                                    '${priceDelta.abs().toStringAsFixed(2)}${tickerData.currency}',
                                 style: TextStyle(
                                     fontSize: 14,
                                     color: (priceDelta == 0.0)
@@ -168,14 +177,13 @@ class _CupertinoTickerHoldingsCardState
                                             : kRedColor),
                               ),
                               Text(
-                                ((data.lastPercentage >= 0) ? '+' : '') +
-                                    data.lastPercentage.toStringAsFixed(2) +
-                                    '%',
+                                ((lastPercentage >= 0) ? '↑' : '↓') +
+                                    '${lastPercentage.abs().toStringAsFixed(2)}%',
                                 style: TextStyle(
                                     fontSize: 14,
-                                    color: (data.lastPercentage == 0.0)
+                                    color: (lastPercentage == 0.0)
                                         ? CupertinoColors.inactiveGray
-                                        : (data.lastPercentage > 0)
+                                        : (lastPercentage > 0)
                                             ? kGreenColor
                                             : kRedColor),
                               ),

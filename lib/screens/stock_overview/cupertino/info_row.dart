@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:stockadvisor/constants.dart';
+import 'package:stockadvisor/models/server_models/prediction_ticker.dart';
 import 'package:stockadvisor/models/yahoo_models/info_data.dart';
 import 'package:stockadvisor/models/yahoo_models/price_data.dart';
 import 'package:stockadvisor/models/yahoo_models/spark_data.dart';
@@ -12,6 +13,7 @@ import 'package:stockadvisor/painters/earnings_painter.dart';
 import 'package:stockadvisor/painters/performance_painter.dart';
 import 'package:stockadvisor/providers/data_provider.dart';
 import 'package:stockadvisor/providers/info_provider.dart';
+import 'package:stockadvisor/providers/server/prediction_provider.dart';
 import 'package:stockadvisor/screens/stock_overview/constants.dart';
 
 class CupertinoInfoRow extends StatefulWidget {
@@ -38,6 +40,7 @@ class _CupertinoInfoRowState extends State<CupertinoInfoRow> {
   Widget build(BuildContext context) {
     final infoProvider = Provider.of<InfoProvider>(context);
     final dataProvider = Provider.of<DataProvider>(context);
+    final predictionProvider = Provider.of<PredictionProvider>(context);
     final mediaQuery = MediaQuery.of(context);
     YahooHelperInfoData tickerInfo =
         infoProvider.getInfoData(ticker: widget.ticker);
@@ -65,6 +68,20 @@ class _CupertinoInfoRowState extends State<CupertinoInfoRow> {
       // 52 week range?
     };
 
+    bool isPredicted = false;
+    PredictionTicker? prediction;
+    double predictionDelta = 0;
+    double predictionPercent = 0;
+    for (var item in predictionProvider.predictions) {
+      if (item.ticker == widget.ticker) {
+        isPredicted = true;
+        prediction = item;
+        predictionDelta = item.predictedPrice - priceData.lastClosePrice;
+        predictionPercent = (predictionDelta / priceData.lastClosePrice) * 100;
+        break;
+      }
+    }
+
     List<double> earningsList = [];
     double earningsMin = 0.0;
     double earningsMax = 0.0;
@@ -81,55 +98,56 @@ class _CupertinoInfoRowState extends State<CupertinoInfoRow> {
 
     return Column(
       children: [
-        CupertinoInfoCard(
-          title: 'PREDICTION',
-          titleIcon: CupertinoIcons.eye_solid,
-          rowPosition: RowPosition.left,
-          innerHeight: 60,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 9.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Predicted at open:',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w400,
-                    fontSize: 15,
+        if (isPredicted)
+          CupertinoInfoCard(
+            title: 'PREDICTION',
+            titleIcon: CupertinoIcons.eye_solid,
+            rowPosition: RowPosition.left,
+            innerHeight: 60,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 9.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Predicted at open:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w400,
+                      fontSize: 15,
+                    ),
                   ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    RichText(
-                      text: TextSpan(
-                        text: "190.00",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      RichText(
+                        text: TextSpan(
+                          text: prediction!.predictedPrice.toStringAsFixed(2),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                          children: [
+                            TextSpan(
+                                text: " USD",
+                                style: TextStyle(
+                                  color: CupertinoColors.inactiveGray,
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 14,
+                                )),
+                          ],
                         ),
-                        children: [
-                          TextSpan(
-                              text: " USD",
-                              style: TextStyle(
-                                color: CupertinoColors.inactiveGray,
-                                fontWeight: FontWeight.w500,
-                                fontSize: 14,
-                              )),
-                        ],
                       ),
-                    ),
-                    Text(
-                      '+12.34 / +10.01%',
-                      style: TextStyle(color: kGreenColor, fontSize: 13),
-                    ),
-                  ],
-                )
-              ],
+                      Text(
+                        '${predictionDelta.toStringAsFixed(2)} / ${predictionPercent.toStringAsFixed(2)}%',
+                        style: TextStyle(color: kGreenColor, fontSize: 13),
+                      ),
+                    ],
+                  )
+                ],
+              ),
             ),
           ),
-        ),
         // CupertinoInfoCard(
         //   title: "52 WEEK PERFORMANCE",
         //   titleIcon: CupertinoIcons.graph_square_fill,
@@ -205,7 +223,7 @@ class _CupertinoInfoRowState extends State<CupertinoInfoRow> {
         //     ],
         //   ),
         // ),
-        //  
+        //
         Row(
           children: [
             Flexible(
@@ -355,7 +373,7 @@ class _CupertinoInfoRowState extends State<CupertinoInfoRow> {
                           Text(
                             // ((tickerInfo.yearChange * 100).toStringAsFixed(2) +
                             //     '%'),
-                            '${(tickerInfo.yearChange > 0) ? '+' : ''}${(tickerInfo.yearChange * 100).toStringAsFixed(2)}%',
+                            '${(tickerInfo.yearChange > 0) ? '↑' : '↓'}${(tickerInfo.yearChange.abs() * 100).toStringAsFixed(2)}%',
                             style: TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.w500,
@@ -363,7 +381,7 @@ class _CupertinoInfoRowState extends State<CupertinoInfoRow> {
                           ),
                           const SizedBox(height: 1),
                           Text(
-                            '${(tickerInfo.yearChange > 0) ? '+' : ''}${(yearlyDelta.toStringAsFixed(2))} ${priceData.currency}',
+                            '${(tickerInfo.yearChange > 0) ? '↑' : '↓'}${(yearlyDelta.abs().toStringAsFixed(2))} ${priceData.currency}',
                             style: TextStyle(
                               fontWeight: FontWeight.w400,
                               color: CupertinoColors.systemGrey2,
@@ -376,8 +394,8 @@ class _CupertinoInfoRowState extends State<CupertinoInfoRow> {
                         (tickerInfo.sAndPYearChange == 0)
                             ? 'Could not load the data.'
                             : (tickerInfo.sAndPYearChange > 0)
-                                ? 'S&P 500 rose ${(tickerInfo.sAndPYearChange * 100).toStringAsFixed(2)}%.'
-                                : 'S&P 500 fell ${(tickerInfo.sAndPYearChange * 100).toStringAsFixed(2)}%.',
+                                ? 'S&P 500 rose ${(tickerInfo.sAndPYearChange.abs() * 100).toStringAsFixed(2)}%.'
+                                : 'S&P 500 fell ${(tickerInfo.sAndPYearChange.abs() * 100).toStringAsFixed(2)}%.',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w400,
@@ -541,6 +559,15 @@ class _CupertinoInfoRowState extends State<CupertinoInfoRow> {
             // ),
           ],
         ),
+        const Center(
+            child: Padding(
+          padding: EdgeInsets.only(top: 20.0, bottom: 10.0),
+          child: Text(
+            'This is not financial advice. \nStock information might be delayed.',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 13),
+          ),
+        )),
       ],
     );
   }

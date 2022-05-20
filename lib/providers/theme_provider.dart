@@ -14,7 +14,7 @@ class ThemeProvider extends ChangeNotifier {
     if (prefs.getBool('isDarkModeEnabled') != null) {
       _isDarkModeEnabled = prefs.getBool('isDarkModeEnabled')!;
     } else {
-      _isDarkModeEnabled = SchedulerBinding.instance!.window.platformBrightness == Brightness.dark;
+      _isDarkModeEnabled = SchedulerBinding.instance.window.platformBrightness == Brightness.dark;
       prefs.setBool('isDarkModeEnabled', _isDarkModeEnabled);
     }
     notifyListeners();

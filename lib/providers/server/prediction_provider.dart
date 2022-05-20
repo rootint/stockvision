@@ -30,6 +30,7 @@ class PredictionProvider extends ChangeNotifier {
   }
 
   void updatePredictions() async {
+    // set up a stream??
     // ask how often are they updated
   }
 

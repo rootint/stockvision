@@ -3,13 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:stockadvisor/constants.dart';
+import 'package:stockadvisor/models/server_models/prediction_ticker.dart';
 import 'package:stockadvisor/models/yahoo_models/meta_data.dart';
 import 'package:stockadvisor/providers/data_provider.dart';
 import 'package:stockadvisor/providers/theme_provider.dart';
 import 'package:stockadvisor/screens/stock_overview/cupertino/main_screen.dart';
 
 class CupertinoTickerPredictionCard extends StatefulWidget {
-  final String ticker;
+  final PredictionTicker ticker;
   bool init = false;
 
   CupertinoTickerPredictionCard({
@@ -24,10 +25,11 @@ class CupertinoTickerPredictionCard extends StatefulWidget {
 
 class _CupertinoTickerPredictionCardState
     extends State<CupertinoTickerPredictionCard> {
+      
   @override
   void deactivate() {
     var provider = Provider.of<DataProvider>(context, listen: false);
-    provider.removeTickerPriceStream(ticker: widget.ticker);
+    provider.removeTickerPriceStream(ticker: widget.ticker.ticker);
     super.deactivate();
   }
 
@@ -39,11 +41,13 @@ class _CupertinoTickerPredictionCardState
     return Consumer<DataProvider>(
       builder: (context, provider, _) {
         if (!widget.init) {
-          provider.initTickerData(ticker: widget.ticker);
+          provider.initTickerData(ticker: widget.ticker.ticker);
           widget.init = true;
         }
-        var data = provider.getPriceData(ticker: widget.ticker);
-        var tickerData = provider.getTickerData(ticker: widget.ticker);
+        var data = provider.getPriceData(ticker: widget.ticker.ticker);
+        var tickerData = provider.getTickerData(ticker: widget.ticker.ticker);
+        final predictionPriceDelta = widget.ticker.predictedPrice - data.lastClosePrice;
+        final predictionPricePercent = (predictionPriceDelta / data.lastClosePrice) * 100;
         return Column(
           children: [
             Padding(
@@ -53,7 +57,7 @@ class _CupertinoTickerPredictionCardState
                   Navigator.of(context, rootNavigator: true).pushNamed(
                     CupertinoStockOverviewMainScreen.routeName,
                     arguments: {
-                      'ticker': widget.ticker,
+                      'ticker': widget.ticker.ticker,
                     },
                   );
                 },
@@ -65,7 +69,6 @@ class _CupertinoTickerPredictionCardState
                     children: [
                       Flexible(
                         flex: 1,
-                        // fit: FlexFit.tight,
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(15),
                           child: SvgPicture.string(
@@ -85,7 +88,7 @@ class _CupertinoTickerPredictionCardState
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                widget.ticker.toUpperCase(),
+                                widget.ticker.ticker.toUpperCase(),
                                 style: TextStyle(
                                   fontWeight: FontWeight.w500,
                                   fontSize: 15,
@@ -145,32 +148,20 @@ class _CupertinoTickerPredictionCardState
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
-                              // Text(
-                              //   ((data.lastPercentage >= 0) ? '+' : '') +
-                              //       data.lastPercentage.toStringAsFixed(2) +
-                              //       '%',
-                              //   style: TextStyle(
-                              //       fontSize: 15,
-                              //       color: (data.lastPercentage == 0.0)
-                              //           ? CupertinoColors.inactiveGray
-                              //           : (data.lastPercentage > 0)
-                              //               ? kGreenColor
-                              //               : kRedColor),
-                              // ),
                               Text(
-                                'At close:',
+                                widget.ticker.atClose ? 'At close:' : 'At open:',
                                 style: TextStyle(
                                   fontSize: 15,
                                 )
                               ),
                               Text(
-                                '190.00 / +5.01%',
+                                '${widget.ticker.predictedPrice.toStringAsFixed(2)} / ${predictionPricePercent.toStringAsFixed(2)}%',
                                 style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w500,
-                                    color: (data.lastPercentage == 0.0)
+                                    color: (predictionPriceDelta == 0.0)
                                         ? CupertinoColors.inactiveGray
-                                        : (data.lastPercentage > 0)
+                                        : (predictionPriceDelta > 0)
                                             ? kGreenColor
                                             : kRedColor),
                               )
@@ -183,12 +174,6 @@ class _CupertinoTickerPredictionCardState
                 ),
               ),
             ),
-            // Container(
-            //   width: mediaQuery.size.width - 20,
-            //   height: 0.2,
-            //   color: CupertinoColors.systemGrey3,
-            //   alignment: Alignment.center,
-            // )
           ],
         );
       },

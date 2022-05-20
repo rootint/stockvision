@@ -88,7 +88,11 @@ class CupertinoStockOverviewMainScreenState
               ),
               SizedBox(
                 child: Text(
-                  ' ${priceData.lastClosePrice.toStringAsFixed(2)} (${(priceData.lastPercentage).toStringAsFixed(2)}%)',
+                  priceData.lastClosePrice.toStringAsFixed(2) +
+                      ' (' +
+                      ((priceData.lastPercentage >= 0) ? '↑' : '↓') +
+                      (priceData.lastPercentage).abs().toStringAsFixed(2) +
+                      '%)',
                   style: TextStyle(
                     fontSize: 13,
                     color: getColorByPercentage(priceData.lastPercentage),

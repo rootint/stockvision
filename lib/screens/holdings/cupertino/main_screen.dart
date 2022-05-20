@@ -2,10 +2,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:stockadvisor/constants.dart';
 import 'package:stockadvisor/helpers/yahoo.dart';
+import 'package:stockadvisor/models/server_models/holdings.dart';
 import 'package:stockadvisor/models/server_models/holdings_ticker.dart';
 import 'package:stockadvisor/models/yahoo_models/chart_data.dart';
 import 'package:stockadvisor/painters/performance_painter.dart';
+import 'package:stockadvisor/providers/data_provider.dart';
+import 'package:stockadvisor/providers/server/holdings_provider.dart';
 import 'package:stockadvisor/providers/theme_provider.dart';
+import 'package:stockadvisor/screens/holdings/cupertino/alltime_provider.dart';
 import 'package:stockadvisor/widgets/cupertino/holdings_ticker_card.dart';
 
 class CupertinoHoldingsMainScreen extends StatefulWidget {
@@ -19,19 +23,42 @@ class CupertinoHoldingsMainScreen extends StatefulWidget {
 
 class _CupertinoHoldingsMainScreenState
     extends State<CupertinoHoldingsMainScreen> {
-  final list = [
-    'top',
-    // HoldingsTicker(ticker: 'aapl', amount: 3, avgShareCost: 167.31),
-    // HoldingsTicker(ticker: 'amd', amount: 2, avgShareCost: 146.09),
-    // HoldingsTicker(ticker: 'nvda', amount: 1, avgShareCost: 225.48),
-    // HoldingsTicker(ticker: 'msft', amount: 1, avgShareCost: 300.94),
-    // HoldingsTicker(ticker: 'intc', amount: 1, avgShareCost: 52.25),
-  ];
+  final scrollController = ScrollController();
+  bool isNavbarDisplayed = false;
+
+  @override
+  void dispose() {
+    scrollController.dispose();
+    super.dispose();
+  }
+
+  String getDeltaString(Holdings holdings, bool isAllTime) {
+    if (isAllTime) {
+      String arrow = (holdings.deltaAlltime > 0) ? '↑' : '↓';
+      return '$arrow${holdings.deltaAlltime.abs().toStringAsFixed(2)} ' +
+          '($arrow${holdings.deltaAlltimePercent.abs().toStringAsFixed(2)}%)';
+    }
+    String arrow = (holdings.deltaToday > 0) ? '↑' : '↓';
+    return '$arrow${holdings.deltaToday.abs().toStringAsFixed(2)} ' +
+        '($arrow${holdings.deltaTodayPercent.abs().toStringAsFixed(2)}%)';
+  }
+
+  Color getDeltaColor(Holdings holdings, bool isAllTime) {
+    if (isAllTime) {
+      return (holdings.deltaAlltime >= 0) ? kGreenColor : kRedColor;
+    }
+    return (holdings.deltaToday >= 0) ? kGreenColor : kRedColor;
+  }
+
   @override
   Widget build(BuildContext context) {
     final darkModeEnabled =
         Provider.of<ThemeProvider>(context).isDarkModeEnabled;
+    var holdings = Provider.of<HoldingsProvider>(context).holdings;
+    final allTimeSwitchProvider = Provider.of<AllTimeProvider>(context);
+    final dataProvider = Provider.of<DataProvider>(context);
     final mediaQuery = MediaQuery.of(context);
+
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         middle: const Text('Holdings'),
@@ -42,8 +69,23 @@ class _CupertinoHoldingsMainScreenState
           onPressed: () {},
         ),
       ),
-      child: CupertinoScrollbar(
+      child: NotificationListener<ScrollNotification>(
+        onNotification: (notification) {
+          if (notification is ScrollUpdateNotification) {
+            if (scrollController.position.pixels > 170) {
+              setState(() {
+                isNavbarDisplayed = true;
+              });
+            } else if (isNavbarDisplayed == true) {
+              setState(() {
+                isNavbarDisplayed = false;
+              });
+            }
+          }
+          return false;
+        },
         child: ListView.builder(
+          controller: scrollController,
           itemBuilder: ((context, index) {
             if (index == 0) {
               return Column(
@@ -57,7 +99,6 @@ class _CupertinoHoldingsMainScreenState
                         borderRadius: BorderRadius.circular(20),
                         color: CupertinoColors.darkBackgroundGray,
                       ),
-                      // height: 175,
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(18, 18, 18, 12),
                         child: Column(
@@ -77,7 +118,8 @@ class _CupertinoHoldingsMainScreenState
                               children: [
                                 RichText(
                                   text: TextSpan(
-                                    text: '1350',
+                                    text: holdings.currentWorth
+                                        .toStringAsFixed(0),
                                     style: TextStyle(
                                       color: darkModeEnabled
                                           ? CupertinoColors.white
@@ -87,7 +129,9 @@ class _CupertinoHoldingsMainScreenState
                                     ),
                                     children: [
                                       TextSpan(
-                                        text: '.01\$',
+                                        text:
+                                            '.${holdings.currentWorth.toStringAsFixed(2).split('.')[1].substring(0, 2)}\$',
+                                        // text: '.00\$',
                                         style: TextStyle(
                                           color: CupertinoColors.systemGrey2,
                                           fontSize: 33,
@@ -99,19 +143,8 @@ class _CupertinoHoldingsMainScreenState
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                                // CupertinoButton(
-                                //   padding: EdgeInsets.zero,
-                                //   onPressed: () {},
-                                //   child: Icon(
-                                //     CupertinoIcons.eye_fill,
-                                //     color: CupertinoColors.systemGrey3,
-                                //   ),
-                                // ),
                               ],
                             ),
-                            // const SizedBox(
-                            //   height: -5,
-                            // ),
                             CupertinoButton(
                               padding: EdgeInsets.zero,
                               child: Container(
@@ -122,27 +155,26 @@ class _CupertinoHoldingsMainScreenState
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(
                                       vertical: 5.0, horizontal: 7.0),
-                                  // child: Row(
-                                  //   crossAxisAlignment:
-                                  //       CrossAxisAlignment.center,
-                                  //   children: [
-                                  //     Text(
-                                  //       '+24.96 (4.31%)',
-                                  //       style: TextStyle(color: kGreenColor),
-                                  //     ),
-                                  //     Text(' today'),
-                                  //   ],
-                                  // ),
                                   child: RichText(
                                     text: TextSpan(
-                                      text: '+50.91 (+1.85%)',
-                                      style: TextStyle(color: kGreenColor
+                                      text: getDeltaString(
+                                          holdings,
+                                          allTimeSwitchProvider
+                                              .isSwitchEnabled),
+                                      style: TextStyle(
+                                          color: getDeltaColor(
+                                              holdings,
+                                              allTimeSwitchProvider
+                                                  .isSwitchEnabled)
                                           // fontWeight: FontWeight.w600,
                                           // fontSize: 33,
                                           ),
                                       children: [
                                         TextSpan(
-                                          text: ' for today',
+                                          text: allTimeSwitchProvider
+                                                  .isSwitchEnabled
+                                              ? ' for all time'
+                                              : ' for today',
                                           style: TextStyle(
                                             color: kPrimaryColor,
                                             // fontSize: 33,
@@ -156,164 +188,126 @@ class _CupertinoHoldingsMainScreenState
                                   ),
                                 ),
                               ),
-                              onPressed: () {},
+                              onPressed: () =>
+                                  allTimeSwitchProvider.onAllTimeSwitch(),
                             ),
-                            // Row(
-                            //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            //   children: [
-                            //     Text(
-                            //       'Today:',
-                            //       style: TextStyle(
-                            //         fontSize: 15,
-                            //       ),
-                            //     ),
-                            //     Text(
-                            //       '+10.01 (+4.52%)',
-                            //       textAlign: TextAlign.end,
-                            //       style: TextStyle(
-                            //         color: kGreenColor,
-                            //         fontSize: 15,
-                            //       ),
-                            //     ),
-                            //   ],
-                            // ),
-                            // const SizedBox(
-                            //   height: 5,
-                            // ),
-                            // Row(
-                            //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            //   children: [
-                            //     Text(
-                            //       'All time:',
-                            //       style: TextStyle(
-                            //         fontSize: 15,
-                            //       ),
-                            //     ),
-                            //     Text(
-                            //       '-15.01 (-6.59%)',
-                            //       textAlign: TextAlign.end,
-                            //       style: TextStyle(
-                            //         color: kRedColor,
-                            //         fontSize: 15,
-                            //       ),
-                            //     ),
-                            //   ],
-                            // ),
                           ],
                         ),
                       ),
                     ),
                   ),
-                  const Padding(
-                    padding: EdgeInsets.fromLTRB(10, 0, 12, 10),
-                    child: Text(
-                      "Performance",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 21,
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: Container(
-                      height: 230,
-                      decoration: BoxDecoration(
-                        color: CupertinoColors.darkBackgroundGray,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Stack(
-                        children: [
-                          Positioned(
-                            top: 0,
-                            child: FutureBuilder<YahooHelperChartData>(
-                              initialData: YahooHelperChartData(
-                                timestamp: [],
-                                open: [],
-                                close: [],
-                                high: [],
-                                low: [],
-                                volume: [],
-                                percentage: 0,
-                                previousClose: 0,
-                                periodHigh: 0,
-                                periodLow: 0,
-                                timestampEnd: 0,
-                                timestampStart: 0,
-                                lastClosePrice: 0,
-                              ),
-                              future: YahooHelper.getChartData({
-                                'ticker': "^gspc",
-                                "range": TickerRange.oneYear,
-                                "interval": TickerInterval.oneDay,
-                              }),
-                              builder: ((context, snapshot) {
-                                var data = snapshot.data!;
-                                return CustomPaint(
-                                  painter: PerformancePainter(
-                                    containerSize: Size(mediaQuery.size.width - 20, 220),
-                                    leftPadding: -10,
-                                    sAndPData: data,
-                                    tickerData: data,
-                                  ),
-                                );
-                              }),
-                            ),
-                          ),
-                          Positioned(
-                            top: 8,
-                            left: 8,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: CupertinoColors.black.withOpacity(0.3),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 10.0, vertical: 6.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Container(
-                                          height: 14,
-                                          width: 2,
-                                          decoration: BoxDecoration(
-                                            color: kGreenColor,
-                                            borderRadius:
-                                                BorderRadius.circular(10),
-                                          ),
-                                        ),
-                                        Text('  Portfolio'),
-                                      ],
-                                    ),
-                                    SizedBox(
-                                      height: 2,
-                                    ),
-                                    Row(
-                                      children: [
-                                        Container(
-                                          height: 14,
-                                          width: 2,
-                                          decoration: BoxDecoration(
-                                            color: kPrimaryColor,
-                                            borderRadius:
-                                                BorderRadius.circular(10),
-                                          ),
-                                        ),
-                                        Text('  S&P 500'),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                  // const Padding(
+                  //   padding: EdgeInsets.fromLTRB(10, 0, 12, 10),
+                  //   child: Text(
+                  //     "Performance",
+                  //     style: TextStyle(
+                  //       fontWeight: FontWeight.w600,
+                  //       fontSize: 21,
+                  //     ),
+                  //   ),
+                  // ),
+                  // Padding(
+                  //   padding: const EdgeInsets.all(10.0),
+                  //   child: Container(
+                  //     height: 230,
+                  //     decoration: BoxDecoration(
+                  //       color: CupertinoColors.darkBackgroundGray,
+                  //       borderRadius: BorderRadius.circular(20),
+                  //     ),
+                  //     child: Stack(
+                  //       children: [
+                  //         Positioned(
+                  //           top: 0,
+                  //           child: FutureBuilder<YahooHelperChartData>(
+                  //             initialData: YahooHelperChartData(
+                  //               timestamp: [],
+                  //               open: [],
+                  //               close: [],
+                  //               high: [],
+                  //               low: [],
+                  //               volume: [],
+                  //               percentage: 0,
+                  //               previousClose: 0,
+                  //               periodHigh: 0,
+                  //               periodLow: 0,
+                  //               timestampEnd: 0,
+                  //               timestampStart: 0,
+                  //               lastClosePrice: 0,
+                  //             ),
+                  //             future: YahooHelper.getChartData({
+                  //               'ticker': "^gspc",
+                  //               "range": TickerRange.oneYear,
+                  //               "interval": TickerInterval.oneDay,
+                  //             }),
+                  //             builder: ((context, snapshot) {
+                  //               var data = snapshot.data!;
+                  //               return CustomPaint(
+                  //                 painter: PerformancePainter(
+                  //                   containerSize:
+                  //                       Size(mediaQuery.size.width - 20, 220),
+                  //                   leftPadding: -10,
+                  //                   sAndPData: data,
+                  //                   tickerData: data,
+                  //                 ),
+                  //               );
+                  //             }),
+                  //           ),
+                  //         ),
+                  //         Positioned(
+                  //           top: 8,
+                  //           left: 8,
+                  //           child: Container(
+                  //             decoration: BoxDecoration(
+                  //               color: CupertinoColors.black.withOpacity(0.3),
+                  //               borderRadius: BorderRadius.circular(12),
+                  //             ),
+                  //             child: Padding(
+                  //               padding: const EdgeInsets.symmetric(
+                  //                   horizontal: 10.0, vertical: 6.0),
+                  //               child: Column(
+                  //                 crossAxisAlignment:
+                  //                     CrossAxisAlignment.start,
+                  //                 children: [
+                  //                   Row(
+                  //                     children: [
+                  //                       Container(
+                  //                         height: 14,
+                  //                         width: 2,
+                  //                         decoration: BoxDecoration(
+                  //                           color: kGreenColor,
+                  //                           borderRadius:
+                  //                               BorderRadius.circular(10),
+                  //                         ),
+                  //                       ),
+                  //                       Text('  Portfolio'),
+                  //                     ],
+                  //                   ),
+                  //                   SizedBox(
+                  //                     height: 2,
+                  //                   ),
+                  //                   Row(
+                  //                     children: [
+                  //                       Container(
+                  //                         height: 14,
+                  //                         width: 2,
+                  //                         decoration: BoxDecoration(
+                  //                           color: kPrimaryColor,
+                  //                           borderRadius:
+                  //                               BorderRadius.circular(10),
+                  //                         ),
+                  //                       ),
+                  //                       Text('  S&P 500'),
+                  //                     ],
+                  //                   ),
+                  //                 ],
+                  //               ),
+                  //             ),
+                  //           ),
+                  //         ),
+                  //       ],
+                  //     ),
+                  //   ),
+                  // ),
                   const Padding(
                     padding: EdgeInsets.fromLTRB(10, 0, 12, 10),
                     child: Text(
@@ -328,10 +322,12 @@ class _CupertinoHoldingsMainScreenState
               );
             } else {
               return CupertinoTickerHoldingsCard(
-                  ticker: (list[index] as HoldingsTicker), key: Key(list[index].toString()));
+                ticker: (holdings.tickerList[index - 1]),
+                key: Key(holdings.tickerList[index - 1].toString()),
+              );
             }
           }),
-          itemCount: list.length,
+          itemCount: holdings.tickerList.length + 1,
         ),
       ),
     );

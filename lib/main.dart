@@ -14,6 +14,7 @@ import 'package:stockadvisor/providers/server/prediction_provider.dart';
 import 'package:stockadvisor/providers/server/watchlist_provider.dart';
 import 'package:stockadvisor/providers/theme_provider.dart';
 import 'package:stockadvisor/screens/dashboard/material_main_screen.dart';
+import 'package:stockadvisor/screens/holdings/cupertino/alltime_provider.dart';
 import 'package:stockadvisor/theme.dart';
 
 bool get isiOS =>
@@ -36,9 +37,23 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider<DataProvider>(create: (_) => DataProvider()),
         ChangeNotifierProvider<ChartProvider>(create: (_) => ChartProvider()),
         ChangeNotifierProvider<InfoProvider>(create: (_) => InfoProvider()),
-        ChangeNotifierProvider<HoldingsProvider>(create: (_) => HoldingsProvider()),
-        ChangeNotifierProvider<WatchlistProvider>(create: (_) => WatchlistProvider()),
-        ChangeNotifierProvider<PredictionProvider>(create: (_) => PredictionProvider()),
+        ChangeNotifierProvider<WatchlistProvider>(
+            create: (_) => WatchlistProvider()),
+        ChangeNotifierProvider<PredictionProvider>(
+            create: (_) => PredictionProvider()),
+        ChangeNotifierProvider<AllTimeProvider>(
+            create: (_) => AllTimeProvider()),
+        // ProxyProvider<DataProvider, HoldingsProvider>(
+        //   update: ((context, value, previous) => HoldingsProvider(value)),
+        // ),
+        ChangeNotifierProxyProvider<DataProvider, HoldingsProvider>(
+          create: (_) => HoldingsProvider(),
+          update: (_, data, holdings) => holdings!..update(data),
+        ),
+        // ChangeNotifierProxyProvider<DataProvider, HoldingsProvider>(
+        //   create: (_) => HoldingsProvider(),
+        //   update: (_, data, holdings) => HoldingsProvider(data),
+        // ),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, provider, child) {

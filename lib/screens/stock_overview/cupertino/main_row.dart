@@ -236,10 +236,10 @@ class _CupertinoStockOverviewMainRowState
               // CURRENT PERIOD PERCENTAGE
               if (sliderShown)
                 Text(
-                  (sliderDeltaPrice > 0 ? '+' : '') +
-                      '${sliderDeltaPrice.toStringAsFixed(2)} / ' +
-                      (sliderPercentage > 0 ? '+' : '') +
-                      '${sliderPercentage.toStringAsFixed(2)}%',
+                  (sliderDeltaPrice > 0 ? '↑' : '↓') +
+                      '${sliderDeltaPrice.abs().toStringAsFixed(2)} / ' +
+                      (sliderPercentage > 0 ? '↑' : '↓') +
+                      '${sliderPercentage.abs().toStringAsFixed(2)}%',
                   style: TextStyle(
                       color: getColorByPercentage(sliderPercentage),
                       fontSize: 14,
@@ -247,10 +247,10 @@ class _CupertinoStockOverviewMainRowState
                 )
               else
                 Text(
-                  (lastPriceDelta > 0 ? '+' : '') +
-                      '${lastPriceDelta.toStringAsFixed(2)} / ' +
-                      (lastPercentage > 0 ? '+' : '') +
-                      '${lastPercentage.toStringAsFixed(2)}%',
+                  (lastPriceDelta > 0 ? '↑' : '↓') +
+                      '${lastPriceDelta.abs().toStringAsFixed(2)} / ' +
+                      (lastPercentage > 0 ? '↑' : '↓') +
+                      '${lastPercentage.abs().toStringAsFixed(2)}%',
                   style: TextStyle(
                       color: getColorByPercentage(lastPercentage),
                       fontSize: 14,
@@ -273,10 +273,10 @@ class _CupertinoStockOverviewMainRowState
                       ),
                       children: <TextSpan>[
                         TextSpan(
-                          text: (currentPriceDelta > 0 ? '+' : '') +
-                              '${currentPriceDelta.toStringAsFixed(2)} / ' +
-                              (currentPercentage > 0 ? '+' : '') +
-                              '${currentPercentage.toStringAsFixed(2)}%',
+                          text: (currentPriceDelta > 0 ? '↑' : '↓') +
+                              '${currentPriceDelta.abs().toStringAsFixed(2)} / ' +
+                              (currentPercentage > 0 ? '↑' : '↓') +
+                              '${currentPercentage.abs().toStringAsFixed(2)}%',
                           style: TextStyle(
                               color: getColorByPercentage(currentPercentage),
                               letterSpacing: 0.04,
