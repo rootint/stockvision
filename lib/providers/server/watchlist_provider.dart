@@ -12,23 +12,6 @@ class WatchlistProvider extends ChangeNotifier {
     'goog',
     'amzn',
     'sber.me',
-    'brk-a',
-    'pton',
-    'brk-b',
-    'msft',
-    'baba',
-    'xom',
-    'lmt',
-    'intc',
-    'mu',
-    'amat',
-    'qcom',
-    'atvi',
-    'crm',
-    'ea',
-    'tsla',
-    'fb',
-    'rub=x',
   ];
 
   WatchlistProvider() {
@@ -53,6 +36,10 @@ class WatchlistProvider extends ChangeNotifier {
 
   void rearrangeWatchList({required List<String> newWatchlist}) {
     _watchlist = newWatchlist;
+  }
+
+  bool containsInWatchlist({required String ticker}) {
+    return _watchlist.contains(ticker);
   }
 
   List<String> get watchlist => _watchlist;

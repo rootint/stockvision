@@ -43,17 +43,10 @@ class MyApp extends StatelessWidget {
             create: (_) => PredictionProvider()),
         ChangeNotifierProvider<AllTimeProvider>(
             create: (_) => AllTimeProvider()),
-        // ProxyProvider<DataProvider, HoldingsProvider>(
-        //   update: ((context, value, previous) => HoldingsProvider(value)),
-        // ),
         ChangeNotifierProxyProvider<DataProvider, HoldingsProvider>(
           create: (_) => HoldingsProvider(),
           update: (_, data, holdings) => holdings!..update(data),
         ),
-        // ChangeNotifierProxyProvider<DataProvider, HoldingsProvider>(
-        //   create: (_) => HoldingsProvider(),
-        //   update: (_, data, holdings) => HoldingsProvider(data),
-        // ),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, provider, child) {

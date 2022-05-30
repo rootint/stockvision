@@ -82,12 +82,25 @@ class _CupertinoTickerCardState extends State<CupertinoTickerCard> {
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                widget.ticker.toUpperCase(),
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 15,
-                                ),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    widget.ticker.toUpperCase() + ' ',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                  if (data.marketState == "PRE" || data.marketState == "PREPRE")
+                                    const Text("Pre", style: TextStyle(color: CupertinoColors.inactiveGray))
+                                  else if (data.marketState == "POST" || data.marketState == "POSTPOST")
+                                    const Text("Post", style: TextStyle(color: CupertinoColors.inactiveGray))
+                                  else 
+                                    const Text("Closed", style: TextStyle(color: CupertinoColors.inactiveGray))
+                                  // Icon(CupertinoIcons.moon_fill),
+                                  // Icon(CupertinoIcons.brightness_solid),
+                                ],
                               ),
                               Text(
                                 tickerData.companyLongName,

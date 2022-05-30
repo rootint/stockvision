@@ -253,9 +253,9 @@ class _CupertinoInfoRowState extends State<CupertinoInfoRow> {
                               ),
                             ),
                             Text(
-                              '${_recommendationMap[tickerInfo.recommendationKey]}',
+                              '${_recommendationMap[tickerInfo.recommendationKey] ?? 'N/A'}',
                               maxLines: 1,
-                              style: TextStyle(fontSize: 17),
+                              style: TextStyle(fontSize: 16),
                             ),
                           ],
                         ),
@@ -263,7 +263,7 @@ class _CupertinoInfoRowState extends State<CupertinoInfoRow> {
                       Center(
                         child: CustomPaint(
                           painter: AnalyticsPainter(
-                            rating: tickerInfo.recommendationMean,
+                            rating: (tickerInfo.recommendationMean != 0) ? tickerInfo.recommendationMean : 2.5,
                             size: Size(mediaQuery.size.width / 2 - 36,
                                 mediaQuery.size.width / 2 - 36),
                           ),

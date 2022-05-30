@@ -7,9 +7,11 @@ import 'package:stockadvisor/main.dart';
 import 'package:stockadvisor/models/yahoo_models/price_data.dart';
 import 'package:stockadvisor/providers/chart_provider.dart';
 import 'package:stockadvisor/providers/data_provider.dart';
+import 'package:stockadvisor/providers/server/holdings_provider.dart';
 import 'package:stockadvisor/providers/server/prediction_provider.dart';
 import 'package:stockadvisor/providers/server/watchlist_provider.dart';
 import 'package:stockadvisor/providers/theme_provider.dart';
+import 'package:stockadvisor/screens/search/cupertino/main_screen.dart';
 import 'package:stockadvisor/screens/stock_overview/cupertino/main_screen.dart';
 import 'package:stockadvisor/widgets/cupertino/dashboard_graph_card.dart';
 import 'package:stockadvisor/widgets/cupertino/holdings_card.dart';
@@ -93,21 +95,8 @@ class CupertinoDashboardMainScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    height: 250,
                     color: kBlackColor.withOpacity(0.9),
-                    child: PageView(
-                      controller: mainCardScrollingController,
-                      scrollDirection: Axis.horizontal,
-                      children: [
-                        CupertinoDashboardGraphCard(height: mainCardHeight),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            CupertinoHoldingsCard(height: mainCardHeight),
-                          ],
-                        ),
-                      ],
-                    ),
+                    child: CupertinoHoldingsCard(height: mainCardHeight),
                   ),
                   const Padding(
                     padding: EdgeInsets.fromLTRB(10, 10, 0, 10),
@@ -146,7 +135,15 @@ class CupertinoDashboardMainScreenState
                             CupertinoIcons.add,
                             color: kPrimaryColor,
                           ),
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.of(context, rootNavigator: true)
+                                .pushNamed(
+                              CupertinoSearchMainScreen.routeName,
+                              arguments: {
+                                'holdings': false,
+                              }
+                            );
+                          },
                         ),
                       ],
                     ),
@@ -154,8 +151,23 @@ class CupertinoDashboardMainScreenState
                 ],
               );
             } else {
-              return CupertinoTickerCard(
-                  ticker: watchlist[index], key: Key(watchlist[index]));
+              return Dismissible(
+                key: Key(watchlist[index]),
+                background: Container(
+                  color: CupertinoColors.systemRed,
+                  alignment: Alignment.centerRight,
+                  child: const Padding(
+                    padding: EdgeInsets.only(right: 14.0),
+                    child: Icon(CupertinoIcons.trash_fill, color: CupertinoColors.white),
+                  ),
+                ),
+                direction: DismissDirection.endToStart,
+                onDismissed: (direction) {
+                  listProvider.removeTickerFromWatchlist(ticker: watchlist[index]);
+                },
+                child: CupertinoTickerCard(
+                    ticker: watchlist[index], key: Key(watchlist[index])),
+              );
             }
           },
           itemCount: watchlist.length,

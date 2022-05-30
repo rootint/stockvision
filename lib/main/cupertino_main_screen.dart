@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:stockadvisor/helpers/route.dart';
 import 'package:stockadvisor/screens/dashboard/cupertino_main_screen.dart';
 import 'package:stockadvisor/screens/feedback/cupertino_main_screen.dart';
@@ -25,7 +24,7 @@ class CupertinoMainScreen extends StatelessWidget {
             label: 'Holdings',
           ),
           BottomNavigationBarItem(
-            icon: Icon(CupertinoIcons.person_alt_circle), // or maybe gear
+            icon: Icon(CupertinoIcons.person_alt_circle),
             label: 'Council',
           ),
           BottomNavigationBarItem(
@@ -47,7 +46,8 @@ class CupertinoMainScreen extends StatelessWidget {
                   routes: RouteHelper.routes,
                   builder: (context) {
                     // Navigator.popUntil(context, ModalRoute.withName('/'));
-                    return CupertinoDashboardMainScreen();
+                    // return CupertinoDashboardMainScreen();
+                    return CupertinoFeedbackMainScreen();
                   },
                 );
               case 1:

@@ -25,6 +25,12 @@ CupertinoThemeData cupertinoLightThemeData(BuildContext context) {
         fontSize: 10,
         height: 1,
       ),
+      navActionTextStyle: TextStyle().copyWith(
+        color: kPrimaryColor,
+        fontFamily: DefaultTextStyle.of(context).style.fontFamily,
+        fontSize: 17,
+      ),
+      textStyle: TextStyle(letterSpacing: 0.04),
     ),
     barBackgroundColor: kCupertinoLightNavColor.withOpacity(0.7),
   );

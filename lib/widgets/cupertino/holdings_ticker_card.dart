@@ -52,10 +52,10 @@ class _CupertinoTickerHoldingsCardState
         late double priceDelta;
         if (!isAllTime) {
           lastPercentage =
-            data.lastClosePrice / data.previousDayClose * 100 - 100;
+            data.currentMarketPrice / data.previousDayClose * 100 - 100;
           priceDelta = data.previousDayClose * lastPercentage / 100;
         } else {
-          lastPercentage = data.lastClosePrice / widget.ticker.avgShareCost * 100 - 100;
+          lastPercentage = data.currentMarketPrice / widget.ticker.avgShareCost * 100 - 100;
           priceDelta = widget.ticker.avgShareCost * lastPercentage / 100 * widget.ticker.amount;
         }
         return Column(
@@ -67,7 +67,7 @@ class _CupertinoTickerHoldingsCardState
                   Navigator.of(context, rootNavigator: true).pushNamed(
                     CupertinoStockOverviewMainScreen.routeName,
                     arguments: {
-                      'ticker': widget.ticker,
+                      'ticker': widget.ticker.ticker,
                     },
                   );
                 },

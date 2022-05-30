@@ -25,7 +25,6 @@ class CupertinoTickerPredictionCard extends StatefulWidget {
 
 class _CupertinoTickerPredictionCardState
     extends State<CupertinoTickerPredictionCard> {
-      
   @override
   void deactivate() {
     var provider = Provider.of<DataProvider>(context, listen: false);
@@ -36,7 +35,8 @@ class _CupertinoTickerPredictionCardState
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
-    final darkModeEnabled = Provider.of<ThemeProvider>(context).isDarkModeEnabled;
+    final darkModeEnabled =
+        Provider.of<ThemeProvider>(context).isDarkModeEnabled;
 
     return Consumer<DataProvider>(
       builder: (context, provider, _) {
@@ -46,8 +46,10 @@ class _CupertinoTickerPredictionCardState
         }
         var data = provider.getPriceData(ticker: widget.ticker.ticker);
         var tickerData = provider.getTickerData(ticker: widget.ticker.ticker);
-        final predictionPriceDelta = widget.ticker.predictedPrice - data.lastClosePrice;
-        final predictionPricePercent = (predictionPriceDelta / data.lastClosePrice) * 100;
+        final predictionPriceDelta =
+            widget.ticker.predictedPrice - data.lastClosePrice;
+        final predictionPricePercent =
+            (predictionPriceDelta / data.lastClosePrice) * 100;
         return Column(
           children: [
             Padding(
@@ -122,7 +124,8 @@ class _CupertinoTickerPredictionCardState
                         flex: 3,
                         fit: FlexFit.tight,
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 6.0),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 8.0, horizontal: 6.0),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             crossAxisAlignment: CrossAxisAlignment.end,
@@ -131,7 +134,9 @@ class _CupertinoTickerPredictionCardState
                                 text: TextSpan(
                                   text: data.lastClosePrice.toStringAsFixed(2),
                                   style: TextStyle(
-                                    color: darkModeEnabled ? CupertinoColors.white : CupertinoColors.darkBackgroundGray,
+                                    color: darkModeEnabled
+                                        ? CupertinoColors.white
+                                        : CupertinoColors.darkBackgroundGray,
                                     fontWeight: FontWeight.w600,
                                     fontSize: 16,
                                   ),
@@ -149,15 +154,18 @@ class _CupertinoTickerPredictionCardState
                                 overflow: TextOverflow.ellipsis,
                               ),
                               Text(
-                                widget.ticker.atClose ? 'At close:' : 'At open:',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                )
-                              ),
+                                  widget.ticker.atClose
+                                      ? 'At close:'
+                                      : 'At open:',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                  )),
                               Text(
-                                '${widget.ticker.predictedPrice.toStringAsFixed(2)} / ${predictionPricePercent.toStringAsFixed(2)}%',
+                                '${widget.ticker.predictedPrice.toStringAsFixed(2)} / ' +
+                                  ((predictionPricePercent > 0) ? '↑' : '↓') + 
+                                    '${predictionPricePercent.abs().toStringAsFixed(2)}%',
                                 style: TextStyle(
-                                    fontSize: 14,
+                                    fontSize: 13,
                                     fontWeight: FontWeight.w500,
                                     color: (predictionPriceDelta == 0.0)
                                         ? CupertinoColors.inactiveGray

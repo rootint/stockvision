@@ -69,7 +69,7 @@ class HoldingsProvider with ChangeNotifier {
     deltaAlltimePercent = currentWorth / overallBuyPrice * 100 - 100;
     deltaToday = currentWorth - onMarketOpenWorth;
     deltaTodayPercent = currentWorth / onMarketOpenWorth * 100 - 100;
-
+    print(currentWorth);
     _holdings = Holdings(
       tickerList: _holdingsList.values.toList(),
       currentWorth: currentWorth,

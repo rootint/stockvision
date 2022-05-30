@@ -138,6 +138,7 @@ class DataProvider extends ChangeNotifier {
         currency: "\$",
         exchangeName: "Loading...",
         marketCap: "Loading...",
+        type: "Loading...",
       );
     }
     return _tickerData[ticker]!;

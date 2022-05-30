@@ -6,6 +6,8 @@ import 'package:stockadvisor/models/yahoo_models/chart_data.dart';
 import 'package:stockadvisor/models/yahoo_models/info_data.dart';
 import 'package:stockadvisor/models/yahoo_models/meta_data.dart';
 import 'package:stockadvisor/models/yahoo_models/price_data.dart';
+import 'package:stockadvisor/models/yahoo_models/search_data.dart';
+import 'package:stockadvisor/models/yahoo_models/search_item.dart';
 import 'package:stockadvisor/models/yahoo_models/spark_data.dart';
 
 enum TickerInterval {
@@ -39,6 +41,7 @@ class YahooHelper {
   static const metaApiString = "/v11/finance/quoteSummary/";
   static const chartApiString = "/v8/finance/chart/";
   static const sparkApiString = "/v8/finance/spark";
+  static const searchApiString = "/v1/finance/search?q=";
   static const String tradingViewUrl =
       "https://s3-symbol-logo.tradingview.com/";
   YahooHelperChartData? cachedData;
@@ -292,6 +295,7 @@ class YahooHelper {
           companyLongName: responseParsed["longName"] ?? 'N/A',
           marketCap: responseParsed["marketCap"]["fmt"],
           exchangeName: responseParsed["exchangeName"],
+          type: responseParsed["quoteType"],
           iconSvg: await getIconSvg(ticker: ticker),
         );
       }
@@ -408,6 +412,40 @@ class YahooHelper {
         // );
       }
       throw Exception('getChartData ${response.statusCode} Error');
+    } catch (error) {
+      rethrow;
+    }
+  }
+
+  static Future<YahooHelperSearchData> getSearchData(
+      {required String query}) async {
+    print(apiURL + searchApiString + query);
+    try {
+      Map<String, YahooHelperSearchItem> searchResults = {};
+      final response =
+          await http.get(Uri.parse(apiURL + searchApiString + query));
+      if (response.statusCode == 200) {
+        var responseParsed = jsonDecode(response.body)["quotes"];
+        for (var item in responseParsed) {
+          searchResults[item["symbol"]] = YahooHelperSearchItem(
+            exchangeName: item["exchDisp"],
+            type: item["typeDisp"],
+            longName: item["longname"] ?? '',
+          );
+        }
+        return YahooHelperSearchData(
+          searchResult: searchResults,
+        );
+      }
+      print('api failure');
+      final meta = await YahooHelper.getStockMetadata(ticker: query);
+      final result = YahooHelperSearchItem(
+        exchangeName: meta.exchangeName,
+        type: meta.type,
+        longName: meta.companyLongName,
+      );
+      searchResults[query] = result;
+      return YahooHelperSearchData(searchResult: searchResults);  
     } catch (error) {
       rethrow;
     }
