@@ -3,6 +3,7 @@ import 'package:stockadvisor/helpers/route.dart';
 import 'package:stockadvisor/screens/dashboard/cupertino_main_screen.dart';
 import 'package:stockadvisor/screens/feedback/cupertino_main_screen.dart';
 import 'package:stockadvisor/screens/holdings/cupertino/main_screen.dart';
+import 'package:stockadvisor/screens/notifications/cupertino/main_screen.dart';
 import 'package:stockadvisor/screens/settings/cupertino_main_screen.dart';
 
 class CupertinoMainScreen extends StatelessWidget {
@@ -24,7 +25,7 @@ class CupertinoMainScreen extends StatelessWidget {
             label: 'Holdings',
           ),
           BottomNavigationBarItem(
-            icon: Icon(CupertinoIcons.person_alt_circle),
+            icon: Icon(CupertinoIcons.lightbulb),
             label: 'Council',
           ),
           BottomNavigationBarItem(
@@ -46,8 +47,8 @@ class CupertinoMainScreen extends StatelessWidget {
                   routes: RouteHelper.routes,
                   builder: (context) {
                     // Navigator.popUntil(context, ModalRoute.withName('/'));
-                    // return CupertinoDashboardMainScreen();
-                    return CupertinoFeedbackMainScreen();
+                    return CupertinoDashboardMainScreen();
+                    // return CupertinoNotificationsMainScreen();
                   },
                 );
               case 1:
@@ -58,7 +59,7 @@ class CupertinoMainScreen extends StatelessWidget {
               case 2:
                 return CupertinoTabView(
                   routes: RouteHelper.routes,
-                  builder: (context) => CupertinoDashboardMainScreen(),
+                  builder: (context) => CupertinoNotificationsMainScreen(),
                 );
               case 3:
                 return CupertinoTabView(

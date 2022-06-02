@@ -72,8 +72,10 @@ class _CupertinoInfoRowState extends State<CupertinoInfoRow> {
     PredictionTicker? prediction;
     double predictionDelta = 0;
     double predictionPercent = 0;
+    double predictionPrice = 0;
     for (var item in predictionProvider.predictions) {
       if (item.ticker == widget.ticker) {
+        predictionPrice = item.predictedPrice;
         isPredicted = true;
         prediction = item;
         predictionDelta = item.predictedPrice - priceData.lastClosePrice;
@@ -139,7 +141,10 @@ class _CupertinoInfoRowState extends State<CupertinoInfoRow> {
                         ),
                       ),
                       Text(
-                        '${predictionDelta.toStringAsFixed(2)} / ${predictionPercent.toStringAsFixed(2)}%',
+                        ((predictionPercent > 0) ? '↑' : '↓') +
+                            '${predictionDelta.toStringAsFixed(2)} / ' +
+                            ((predictionPercent > 0) ? '↑' : '↓') +
+                            '${predictionPercent.abs().toStringAsFixed(2)}%',
                         style: TextStyle(color: kGreenColor, fontSize: 13),
                       ),
                     ],
@@ -263,7 +268,9 @@ class _CupertinoInfoRowState extends State<CupertinoInfoRow> {
                       Center(
                         child: CustomPaint(
                           painter: AnalyticsPainter(
-                            rating: (tickerInfo.recommendationMean != 0) ? tickerInfo.recommendationMean : 2.5,
+                            rating: (tickerInfo.recommendationMean != 0)
+                                ? tickerInfo.recommendationMean
+                                : 2.5,
                             size: Size(mediaQuery.size.width / 2 - 36,
                                 mediaQuery.size.width / 2 - 36),
                           ),

@@ -119,9 +119,11 @@ class _CupertinoFeedbackMainScreenState
                 Text(
                   "Rate your experience",
                   style: TextStyle(
-                    fontSize: 20,
-                    color: isDarkModeEnabled ? CupertinoColors.white : CupertinoColors.black
-                  ),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 21,
+                      color: isDarkModeEnabled
+                          ? CupertinoColors.white
+                          : CupertinoColors.black),
                 ),
                 const SizedBox(height: 15),
                 Row(
@@ -150,9 +152,11 @@ class _CupertinoFeedbackMainScreenState
                 Text(
                   "What can be improved?",
                   style: TextStyle(
-                    fontSize: 20,
-                    color: isDarkModeEnabled ? CupertinoColors.white : CupertinoColors.black
-                  ),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 21,
+                      color: isDarkModeEnabled
+                          ? CupertinoColors.white
+                          : CupertinoColors.black),
                 ),
                 const SizedBox(height: 15),
                 Wrap(

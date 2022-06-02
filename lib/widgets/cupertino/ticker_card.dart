@@ -32,7 +32,8 @@ class _CupertinoTickerCardState extends State<CupertinoTickerCard> {
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
-    final darkModeEnabled = Provider.of<ThemeProvider>(context).isDarkModeEnabled;
+    final darkModeEnabled =
+        Provider.of<ThemeProvider>(context).isDarkModeEnabled;
 
     return Consumer<DataProvider>(
       builder: (context, provider, _) {
@@ -42,131 +43,143 @@ class _CupertinoTickerCardState extends State<CupertinoTickerCard> {
         }
         var data = provider.getPriceData(ticker: widget.ticker);
         var tickerData = provider.getTickerData(ticker: widget.ticker);
-        return Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(left: 10.0),
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.of(context, rootNavigator: true).pushNamed(
-                    CupertinoStockOverviewMainScreen.routeName,
-                    arguments: {
-                      'ticker': widget.ticker,
-                    },
-                  );
+        return Padding(
+          padding: const EdgeInsets.only(left: 10.0),
+          child: GestureDetector(
+            onTap: () {
+              Navigator.of(context, rootNavigator: true).pushNamed(
+                CupertinoStockOverviewMainScreen.routeName,
+                arguments: {
+                  'ticker': widget.ticker,
                 },
-                child: Container(
-                  height: 70,
-                  width: mediaQuery.size.width,
-                  color: CupertinoColors.activeBlue.withAlpha(0),
-                  child: Row(
-                    children: [
-                      Flexible(
-                        flex: 1,
-                        // fit: FlexFit.tight,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(15),
-                          child: SvgPicture.string(
-                            tickerData.iconSvg,
-                            height: 47,
-                            // fit: BoxFit.scaleDown,
-                          ),
-                        ),
+              );
+            },
+            child: Container(
+              height: 70,
+              width: mediaQuery.size.width,
+              color: CupertinoColors.activeBlue.withAlpha(0),
+              child: Row(
+                children: [
+                  Flexible(
+                    flex: 1,
+                    // fit: FlexFit.tight,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(15),
+                      child: SvgPicture.string(
+                        tickerData.iconSvg,
+                        height: 47,
                       ),
-                      Flexible(
-                        flex: 3,
-                        fit: FlexFit.tight,
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(12, 8, 0, 8),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    widget.ticker.toUpperCase() + ' ',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 15,
-                                    ),
-                                  ),
-                                  if (data.marketState == "PRE" || data.marketState == "PREPRE")
-                                    const Text("Pre", style: TextStyle(color: CupertinoColors.inactiveGray))
-                                  else if (data.marketState == "POST" || data.marketState == "POSTPOST")
-                                    const Text("Post", style: TextStyle(color: CupertinoColors.inactiveGray))
-                                  else 
-                                    const Text("Closed", style: TextStyle(color: CupertinoColors.inactiveGray))
-                                  // Icon(CupertinoIcons.moon_fill),
-                                  // Icon(CupertinoIcons.brightness_solid),
-                                ],
-                              ),
-                              Text(
-                                tickerData.companyLongName,
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                                style: TextStyle(
-                                  // fontWeight: FontWeight.w500,
-                                  color: CupertinoColors.systemGrey2,
-                                  fontSize: 14,
-                                ),
-                              )
-                            ],
-                          ),
-                        ),
-                      ),
-                      Flexible(
-                        flex: 2,
-                        fit: FlexFit.tight,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              RichText(
-                                text: TextSpan(
-                                  text: data.lastClosePrice.toStringAsFixed(2),
-                                  style: TextStyle(
-                                    color: darkModeEnabled ? CupertinoColors.white : CupertinoColors.darkBackgroundGray,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 16,
-                                  ),
-                                  children: [
-                                    TextSpan(
-                                      text: tickerData.currency,
-                                      style: TextStyle(
-                                        color: CupertinoColors.systemGrey2,
-                                        fontSize: 15,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              Text(
-                                ((data.lastPercentage >= 0) ? '↑' : '↓') +
-                                data.lastPercentage.abs().toStringAsFixed(2) + '%',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                    color: (data.lastPercentage == 0.0 || data.marketState != "REGULAR")
-                                        ? CupertinoColors.inactiveGray
-                                        : (data.lastPercentage > 0)
-                                            ? kGreenColor
-                                            : kRedColor),
-                              )
-                            ],
-                          ),
-                        ),
-                      )
-                    ],
+                    ),
                   ),
-                ),
+                  Flexible(
+                    flex: 3,
+                    fit: FlexFit.tight,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 8, 0, 8),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                widget.ticker.toUpperCase() + ' ',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 15,
+                                ),
+                              ),
+                              if (data.marketState == "PRE")
+                                const Text("Pre",
+                                    style: TextStyle(
+                                        color:
+                                            CupertinoColors.inactiveGray))
+                              else if (data.marketState == "POST")
+                                const Text("Post",
+                                    style: TextStyle(
+                                        color:
+                                            CupertinoColors.inactiveGray))
+                              else if (data.marketState == "REGULAR")
+                                Container()
+                              else
+                                const Text("Closed",
+                                    style: TextStyle(
+                                        color:
+                                            CupertinoColors.inactiveGray))
+                              // Icon(CupertinoIcons.moon_fill),
+                              // Icon(CupertinoIcons.brightness_solid),
+                            ],
+                          ),
+                          Text(
+                            tickerData.companyLongName,
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                            style: TextStyle(
+                              // fontWeight: FontWeight.w500,
+                              color: CupertinoColors.systemGrey2,
+                              fontSize: 14,
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+                  Flexible(
+                    flex: 2,
+                    fit: FlexFit.tight,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          RichText(
+                            text: TextSpan(
+                              text: data.lastClosePrice.toStringAsFixed(2),
+                              style: TextStyle(
+                                color: darkModeEnabled
+                                    ? CupertinoColors.white
+                                    : CupertinoColors.darkBackgroundGray,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                              ),
+                              children: [
+                                TextSpan(
+                                  text: tickerData.currency,
+                                  style: TextStyle(
+                                    color: CupertinoColors.systemGrey2,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            ((data.lastPercentage >= 0) ? '↑' : '↓') +
+                                data.lastPercentage
+                                    .abs()
+                                    .toStringAsFixed(2) +
+                                '%',
+                            style: TextStyle(
+                                fontSize: 15,
+                                color: (data.lastPercentage == 0.0 ||
+                                        data.marketState != "REGULAR")
+                                    ? CupertinoColors.inactiveGray
+                                    : (data.lastPercentage > 0)
+                                        ? kGreenColor
+                                        : kRedColor),
+                          )
+                        ],
+                      ),
+                    ),
+                  )
+                ],
               ),
             ),
-          ],
+          ),
         );
       },
     );

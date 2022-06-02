@@ -54,6 +54,9 @@ class CupertinoStockOverviewMainScreenState
         ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
     final String ticker = routeArgs['ticker']!;
     final provider = Provider.of<DataProvider>(context);
+    // optimize
+    provider.initTickerData(ticker: ticker);
+
     final priceData = provider.getPriceData(ticker: ticker);
     final tickerData = provider.getTickerData(ticker: ticker);
     final chartProvider = Provider.of<ChartProvider>(context);

@@ -6,9 +6,7 @@ import 'package:stockadvisor/providers/server/holdings_provider.dart';
 import 'package:stockadvisor/providers/theme_provider.dart';
 
 class CupertinoHoldingsCard extends StatefulWidget {
-  final double height;
   const CupertinoHoldingsCard({
-    required this.height,
     Key? key,
   }) : super(key: key);
 
@@ -35,10 +33,10 @@ class _CupertinoHoldingsCardState extends State<CupertinoHoldingsCard> {
     final holdingsProvider = Provider.of<HoldingsProvider>(context);
     var holdings = holdingsProvider.holdings;
     final mediaQuery = MediaQuery.of(context);
-    if (!isLogOn) {
-      return NotLoggedInCard(
-          height: widget.height, width: mediaQuery.size.width);
-    }
+    // if (isLogOn) {
+    //   return NotLoggedInCard(
+    //       height: widget.height, width: mediaQuery.size.width);
+    // }
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 15.0),
       child: Container(
