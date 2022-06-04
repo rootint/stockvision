@@ -37,14 +37,12 @@ enum TickerRange {
 
 class YahooHelper {
   static const apiURL = "https://query1.finance.yahoo.com";
-  static const mainApiString = "/v6/finance/quote";
+  static const mainApiString = "/v7/finance/quote";
   static const metaApiString = "/v11/finance/quoteSummary/";
   static const chartApiString = "/v8/finance/chart/";
-  static const sparkApiString = "/v8/finance/spark";
   static const searchApiString = "/v1/finance/search?q=";
   static const String tradingViewUrl =
       "https://s3-symbol-logo.tradingview.com/";
-  YahooHelperChartData? cachedData;
 
   static const Map<TickerInterval, String> intervalMap = {
     TickerInterval.oneMinute: "1m",
@@ -80,6 +78,14 @@ class YahooHelper {
     // add more
   };
 
+  static const Map<String, String> currencies = {
+    'USD': '\$',
+    'RUB': '₽',
+    'EUR': '€',
+    'GBP': '£',
+    // add more
+  };
+
   /// Returns a [YahooHelperPriceData] object with
   /// price data of a ticker.
   ///
@@ -87,14 +93,14 @@ class YahooHelper {
   static Future<YahooHelperPriceData> getCurrentPrice(String ticker) async {
     try {
       final response = await http
-          .get(Uri.parse(apiURL + mainApiString + "?symbols=" + ticker));
-      // print(Uri.parse(apiURL + mainApiString + "?symbols=" + ticker));
+          .get(Uri.parse(apiURL + mainApiString + '?symbols=' + ticker));
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseParsed =
             jsonDecode(response.body)["quoteResponse"]["result"][0];
         final marketState = responseParsed["marketState"];
         double? currentMarketPrice;
         double? currentPercentage;
+        double? currentDelta;
         if (marketState == 'PRE') {
           currentMarketPrice = responseParsed["preMarketPrice"];
           currentPercentage = responseParsed["preMarketChangePercent"];
@@ -106,6 +112,8 @@ class YahooHelper {
           currentPercentage = responseParsed["postMarketChangePercent"];
         }
         return YahooHelperPriceData(
+          currentDelta: 0,
+          lastCloseDelta: 0,
           marketState: marketState,
           currentMarketPrice:
               currentMarketPrice ?? responseParsed["regularMarketPrice"],
@@ -285,16 +293,17 @@ class YahooHelper {
   static Future<YahooHelperMetaData> getStockMetadata(
       {required String ticker}) async {
     try {
-      final response = await http
-          .get(Uri.parse(apiURL + metaApiString + ticker + "?modules=price"));
+      final response = await http.get(Uri.parse(apiURL +
+          mainApiString +
+          '?symbols=$ticker' +
+          "&fields=longName,currency"));
       if (response.statusCode == 200) {
-        final responseParsed =
-            jsonDecode(response.body)["quoteSummary"]["result"][0]["price"];
+        final Map<String, dynamic> responseParsed =
+            jsonDecode(response.body)["quoteResponse"]["result"][0];
         return YahooHelperMetaData(
-          currency: responseParsed["currencySymbol"],
-          companyLongName: responseParsed["longName"] ?? 'N/A',
-          marketCap: responseParsed["marketCap"]["fmt"],
-          exchangeName: responseParsed["exchangeName"],
+          currency: currencies[responseParsed["currency"]]!,
+          companyLongName: responseParsed["longName"],
+          exchangeName: responseParsed["fullExchangeName"],
           type: responseParsed["quoteType"],
           iconSvg: await getIconSvg(ticker: ticker),
         );
@@ -318,13 +327,6 @@ class YahooHelper {
     String ticker = input['ticker']!;
     TickerInterval interval = input['interval']!;
     TickerRange range = input['range']!;
-    print(apiURL +
-        chartApiString +
-        ticker +
-        '?interval=' +
-        intervalMap[interval]! +
-        '&range=' +
-        rangeMap[range]!);
     try {
       final response = await http.get(Uri.parse(apiURL +
           chartApiString +
@@ -333,31 +335,8 @@ class YahooHelper {
           intervalMap[interval]! +
           '&range=' +
           rangeMap[range]!));
-      // print('$ticker CHART RESPONSE STARTED $interval $range');
-      // print(Uri.parse(apiURL +
-      //     sparkApiString +
-      //     '?symbols=' +
-      //     ticker +
-      //     '&range=' +
-      //     rangeMap[range]! +
-      //     '&interval=' +
-      //     intervalMap[interval]!));
-      // final response = await http.get(Uri.parse(apiURL +
-      //     sparkApiString +
-      //     '?symbols=' +
-      //     ticker +
-      //     '&range=' +
-      //     rangeMap[range]! +
-      //     '&interval=' +
-      //     intervalMap[interval]!));
       print('$ticker CHART RESPONSE ENDED $interval $range');
       if (response.statusCode == 200) {
-        // final responseParsed = jsonDecode(response.body)[ticker];
-        // final List<int> timestamps = responseParsed['timestamp'].whereType<int>().toList();
-        // final List<double> closePrices = responseParsed['close'].whereType<double>().toList();
-        // final double previousClose = responseParsed['chartPreviousClose'];
-        // print(responseParsed);
-        // final responsePricesParsed = responseParsed['indicators']['quote'][0];
         final responseParsed = jsonDecode(response.body)['chart']['result'][0];
         final responsePricesParsed = responseParsed['indicators']['quote'][0];
         // conversion to int and double removes null values from the list
@@ -395,21 +374,6 @@ class YahooHelper {
           timestampStart: timestampStart,
           lastClosePrice: currentPrice,
         );
-        // return YahooHelperChartData(
-        //   timestamp: timestamps,
-        //   open: [],
-        //   close: closePrices,
-        //   high: [],
-        //   low: [],
-        //   volume: [],
-        //   percentage: 0,
-        //   previousClose: previousClose,
-        //   periodHigh: closePrices.reduce(max),
-        //   periodLow: closePrices.reduce(min),
-        //   timestampEnd: timestamps[timestamps.length - 1],
-        //   timestampStart: timestamps[timestamps.length - 1],
-        //   lastClosePrice: 0,
-        // );
       }
       throw Exception('getChartData ${response.statusCode} Error');
     } catch (error) {
@@ -445,7 +409,7 @@ class YahooHelper {
         longName: meta.companyLongName,
       );
       searchResults[query] = result;
-      return YahooHelperSearchData(searchResult: searchResults);  
+      return YahooHelperSearchData(searchResult: searchResults);
     } catch (error) {
       rethrow;
     }

@@ -1,6 +1,8 @@
 class YahooHelperPriceData {
   final String marketState;
   final double lastClosePrice;
+  final double lastCloseDelta;
+  final double currentDelta;
   final double currentMarketPrice;
   final double lastPercentage;
   final double currentPercentage;
@@ -32,5 +34,7 @@ class YahooHelperPriceData {
     required this.trailingAnnualDividendRate,
     required this.trailingAnnualDividendYield,
     required this.lastDividendTimestamp,
+    required this.currentDelta,
+    required this.lastCloseDelta,
   });
 }

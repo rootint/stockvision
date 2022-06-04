@@ -1,6 +1,5 @@
 import 'dart:math';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:stockadvisor/constants.dart';
@@ -46,7 +45,7 @@ class _CupertinoInfoRowState extends State<CupertinoInfoRow> {
         infoProvider.getInfoData(ticker: widget.ticker);
     YahooHelperSparkData tickerGraph =
         infoProvider.getChartData(ticker: widget.ticker);
-    YahooHelperSparkData sAndPGraph = dataProvider.getSAndPChart();
+    // YahooHelperSparkData sAndPGraph = dataProvider.getSAndPChart();
     YahooHelperPriceData priceData =
         Provider.of<DataProvider>(context).getPriceData(ticker: widget.ticker);
     double dayPosition = 1 -

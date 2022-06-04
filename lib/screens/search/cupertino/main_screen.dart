@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:stockadvisor/helpers/yahoo.dart';
 import 'package:stockadvisor/models/yahoo_models/search_data.dart';
-import 'package:stockadvisor/models/yahoo_models/search_item.dart';
 import 'package:stockadvisor/providers/server/watchlist_provider.dart';
 import 'package:stockadvisor/screens/stock_overview/cupertino/main_screen.dart';
 
@@ -97,6 +96,7 @@ class _CupertinoSearchMainScreenState extends State<CupertinoSearchMainScreen> {
                               watchlistProvider.addTickerToWatchlist(
                                   ticker: key);
                             }
+                            print(key);
                             Navigator.of(context).pop();
                           }
                         },

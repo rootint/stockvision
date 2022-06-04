@@ -28,14 +28,18 @@ class WatchlistProvider extends ChangeNotifier {
 
   void addTickerToWatchlist({required String ticker}) {
     _watchlist.add(ticker);
+    // print(ticker)
+    notifyListeners();
   }
 
   void removeTickerFromWatchlist({required String ticker}) {
     _watchlist.remove(ticker);
+    notifyListeners();
   }
 
   void rearrangeWatchList({required List<String> newWatchlist}) {
     _watchlist = newWatchlist;
+    notifyListeners();
   }
 
   bool containsInWatchlist({required String ticker}) {

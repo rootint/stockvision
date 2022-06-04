@@ -1,20 +1,10 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:provider/provider.dart';
 import 'package:stockadvisor/constants.dart';
-import 'package:stockadvisor/helpers/yahoo.dart';
-import 'package:stockadvisor/main.dart';
-import 'package:stockadvisor/models/yahoo_models/price_data.dart';
-import 'package:stockadvisor/providers/chart_provider.dart';
-import 'package:stockadvisor/providers/data_provider.dart';
-import 'package:stockadvisor/providers/server/holdings_provider.dart';
 import 'package:stockadvisor/providers/server/prediction_provider.dart';
 import 'package:stockadvisor/providers/server/watchlist_provider.dart';
 import 'package:stockadvisor/providers/theme_provider.dart';
 import 'package:stockadvisor/screens/search/cupertino/main_screen.dart';
-import 'package:stockadvisor/screens/stock_overview/cupertino/main_screen.dart';
-import 'package:stockadvisor/widgets/cupertino/dashboard_graph_card.dart';
 import 'package:stockadvisor/widgets/cupertino/holdings_card.dart';
 import 'package:stockadvisor/widgets/cupertino/prediction_ticker_card.dart';
 import 'package:stockadvisor/widgets/cupertino/ticker_card.dart';
@@ -37,7 +27,7 @@ class CupertinoDashboardMainScreenState
     final predictionProvider = Provider.of<PredictionProvider>(context);
     final watchlist = listProvider.watchlist;
     final predictionList = predictionProvider.predictions;
-    final MediaQueryData mediaQuery = MediaQuery.of(context);
+    // final MediaQueryData mediaQuery = MediaQuery.of(context);
 
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
@@ -48,12 +38,6 @@ class CupertinoDashboardMainScreenState
             ? kCupertinoDarkNavColor.withOpacity(0.7)
             : kCupertinoLightNavColor.withOpacity(0.7),
         middle: const Text("Dashboard"),
-        // trailing: CupertinoButton(
-        //   padding: EdgeInsets.zero,
-        //   child: const Icon(CupertinoIcons.gear_alt_fill,
-        //       color: CupertinoColors.systemGrey5),
-        //   onPressed: () {},
-        // ),
       ),
       child: CupertinoScrollbar(
         child: ListView.builder(
@@ -64,7 +48,7 @@ class CupertinoDashboardMainScreenState
                 children: [
                   Container(
                     color: kBlackColor.withOpacity(0.9),
-                    child: CupertinoHoldingsCard(),
+                    child: const CupertinoHoldingsCard(),
                   ),
                   const Padding(
                     padding: EdgeInsets.fromLTRB(10, 0, 0, 8),
@@ -136,30 +120,14 @@ class CupertinoDashboardMainScreenState
                       ticker: watchlist[index]);
                 },
                 child: CupertinoTickerCard(
-                    ticker: watchlist[index], key: Key(watchlist[index])),
+                  ticker: watchlist[index],
+                  key: Key(watchlist[index]),
+                ),
               );
-              // return Slidable(
-              //   key: Key(watchlist[index]),
-
-              //   endActionPane: ActionPane(
-              //     motion: const ScrollMotion(),
-              //     dismissible: DismissiblePane(onDismissed: () => ,),
-              //     children: [
-              //       SlidableAction(
-              //         onPressed: (_) => listProvider.removeTickerFromWatchlist(
-              //             ticker: watchlist[index]),
-              //         backgroundColor: CupertinoColors.systemRed,
-              //         foregroundColor: CupertinoColors.white,
-              //         icon: CupertinoIcons.trash_fill,
-              //       ),
-              //     ],
-              //   ),
-              //   child: CupertinoTickerCard(
-              //       ticker: watchlist[index], key: Key(watchlist[index])),
-              // );
             }
           },
           itemCount: watchlist.length,
+          // itemCount: 3,
         ),
       ),
     );

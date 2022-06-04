@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:stockadvisor/constants.dart';
 import 'package:stockadvisor/helpers/tuple.dart';
@@ -143,6 +144,7 @@ class _CupertinoFeedbackMainScreenState
                           setState(() {
                             _currentRating = i + 1;
                             FocusManager.instance.primaryFocus?.unfocus();
+                            HapticFeedback.lightImpact();
                           });
                         },
                       ),
@@ -168,6 +170,7 @@ class _CupertinoFeedbackMainScreenState
                           _feedbackSuggestions[i].second =
                               !_feedbackSuggestions[i].second;
                         });
+                        HapticFeedback.lightImpact();
                       }, _feedbackSuggestions[i].second, isDarkModeEnabled)
                   ],
                   spacing: 15,

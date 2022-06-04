@@ -47,24 +47,24 @@ class CupertinoMainScreen extends StatelessWidget {
                   routes: RouteHelper.routes,
                   builder: (context) {
                     // Navigator.popUntil(context, ModalRoute.withName('/'));
-                    return CupertinoDashboardMainScreen();
+                    return const CupertinoDashboardMainScreen();
                     // return CupertinoNotificationsMainScreen();
                   },
                 );
               case 1:
                 return CupertinoTabView(
                   routes: RouteHelper.routes,
-                  builder: (context) => CupertinoHoldingsMainScreen(),
+                  builder: (context) => const CupertinoHoldingsMainScreen(),
                 );
               case 2:
                 return CupertinoTabView(
                   routes: RouteHelper.routes,
-                  builder: (context) => CupertinoNotificationsMainScreen(),
+                  builder: (context) => const CupertinoNotificationsMainScreen(),
                 );
               case 3:
                 return CupertinoTabView(
                   routes: RouteHelper.routes,
-                  builder: (context) => CupertinoFeedbackMainScreen(),
+                  builder: (context) => const CupertinoFeedbackMainScreen(),
                 );
               case 4:
                 return CupertinoTabView(
@@ -74,7 +74,7 @@ class CupertinoMainScreen extends StatelessWidget {
             }
             return CupertinoTabView(
               routes: RouteHelper.routes,
-              builder: (context) => CupertinoDashboardMainScreen(),
+              builder: (context) => const CupertinoDashboardMainScreen(),
             );
           },
         );

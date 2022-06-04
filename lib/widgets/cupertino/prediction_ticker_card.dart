@@ -28,7 +28,7 @@ class _CupertinoTickerPredictionCardState
   @override
   void deactivate() {
     var provider = Provider.of<DataProvider>(context, listen: false);
-    provider.removeTickerPriceStream(ticker: widget.ticker.ticker);
+    // provider.removeTickerPriceStream(ticker: widget.ticker.ticker);
     super.deactivate();
   }
 
