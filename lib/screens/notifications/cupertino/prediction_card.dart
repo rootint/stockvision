@@ -133,7 +133,7 @@ class CupertinoNotificationPredictionCardState
                         '%',
                     style: TextStyle(
                       fontSize: 15,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w500,
                       color: (widget.data.predictionDelta! > 0)
                           ? kGreenColor
                           : kRedColor,

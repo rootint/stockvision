@@ -52,11 +52,15 @@ class _CupertinoTickerHoldingsCardState
         late double priceDelta;
         if (!isAllTime) {
           lastPercentage =
-            data.currentMarketPrice / data.previousDayClose * 100 - 100;
+              data.currentMarketPrice / data.previousDayClose * 100 - 100;
           priceDelta = data.previousDayClose * lastPercentage / 100;
         } else {
-          lastPercentage = data.currentMarketPrice / widget.ticker.avgShareCost * 100 - 100;
-          priceDelta = widget.ticker.avgShareCost * lastPercentage / 100 * widget.ticker.amount;
+          lastPercentage =
+              data.currentMarketPrice / widget.ticker.avgShareCost * 100 - 100;
+          priceDelta = widget.ticker.avgShareCost *
+              lastPercentage /
+              100 *
+              widget.ticker.amount;
         }
         return Column(
           children: [
@@ -103,7 +107,7 @@ class _CupertinoTickerHoldingsCardState
                             children: [
                               Text(
                                 widget.ticker.ticker.toUpperCase(),
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontWeight: FontWeight.w600,
                                   fontSize: 15,
                                 ),
@@ -112,7 +116,7 @@ class _CupertinoTickerHoldingsCardState
                                 tickerData.companyLongName,
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 1,
-                                style: TextStyle(
+                                style: const TextStyle(
                                   // fontWeight: FontWeight.w500,
                                   color: CupertinoColors.systemGrey2,
                                   fontSize: 14,
@@ -122,7 +126,7 @@ class _CupertinoTickerHoldingsCardState
                                 '${widget.ticker.amount} pc • ${widget.ticker.avgShareCost.toStringAsFixed(2)}${tickerData.currency}',
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 1,
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: CupertinoColors.systemGrey2,
                                   fontSize: 14,
                                 ),
@@ -132,7 +136,7 @@ class _CupertinoTickerHoldingsCardState
                         ),
                       ),
                       Flexible(
-                        flex: 3,
+                        flex: 2,
                         fit: FlexFit.tight,
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
@@ -154,7 +158,7 @@ class _CupertinoTickerHoldingsCardState
                                   children: [
                                     TextSpan(
                                       text: tickerData.currency,
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                         color: CupertinoColors.systemGrey2,
                                         fontWeight: FontWeight.w500,
                                         fontSize: 15,
@@ -169,23 +173,27 @@ class _CupertinoTickerHoldingsCardState
                                 ((priceDelta >= 0) ? '↑' : '↓') +
                                     '${priceDelta.abs().toStringAsFixed(2)}${tickerData.currency}',
                                 style: TextStyle(
-                                    fontSize: 14,
-                                    color: (priceDelta == 0.0)
-                                        ? CupertinoColors.inactiveGray
-                                        : (priceDelta > 0)
-                                            ? kGreenColor
-                                            : kRedColor),
+                                  fontSize: 14,
+                                  color: (priceDelta == 0.0)
+                                      ? CupertinoColors.inactiveGray
+                                      : (priceDelta > 0)
+                                          ? kGreenColor
+                                          : kRedColor,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                               Text(
                                 ((lastPercentage >= 0) ? '↑' : '↓') +
                                     '${lastPercentage.abs().toStringAsFixed(2)}%',
                                 style: TextStyle(
-                                    fontSize: 14,
-                                    color: (lastPercentage == 0.0)
-                                        ? CupertinoColors.inactiveGray
-                                        : (lastPercentage > 0)
-                                            ? kGreenColor
-                                            : kRedColor),
+                                  fontSize: 14,
+                                  color: (lastPercentage == 0.0)
+                                      ? CupertinoColors.inactiveGray
+                                      : (lastPercentage > 0)
+                                          ? kGreenColor
+                                          : kRedColor,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                             ],
                           ),

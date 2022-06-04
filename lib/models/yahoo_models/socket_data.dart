@@ -1,12 +1,18 @@
 class YahooHelperSocketData {
-  double price;
-  double percentage;
-  double delta;
+  double currentMarketPrice;
+  double currentPercentage;
+  double lastPercentage;
+  double currentDelta;
+  double lastClosePrice;
+  double lastCloseDelta;
   String marketHours;
   YahooHelperSocketData({
-    this.price = 0,
-    this.percentage = 0,
-    this.delta = 0,
+    this.lastCloseDelta = 0,
+    this.currentDelta = 0,
+    this.currentMarketPrice = 0,
+    this.currentPercentage = 0,
+    this.lastClosePrice = 0,
+    this.lastPercentage = 0,
     this.marketHours = '',
   });
 }

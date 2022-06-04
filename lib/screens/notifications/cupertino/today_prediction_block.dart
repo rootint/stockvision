@@ -39,6 +39,7 @@ class TickerRow extends StatelessWidget {
     final darkModeEnabled =
         Provider.of<ThemeProvider>(context).isDarkModeEnabled;
     final metadataProvider = Provider.of<DataProvider>(context);
+    // sockets
     final currentPrice =
         metadataProvider.getPriceData(ticker: data.ticker).currentMarketPrice;
     metadataProvider.initTickerData(ticker: data.ticker);
@@ -120,7 +121,7 @@ class TickerRow extends StatelessWidget {
                       color: (data.predictedPrice > currentPrice)
                           ? kGreenColor
                           : kRedColor,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
