@@ -1,12 +1,16 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:stockadvisor/constants.dart';
+import 'package:stockadvisor/models/yahoo_models/price_data.dart';
 import 'package:stockadvisor/providers/chart_provider.dart';
 import 'package:stockadvisor/providers/data_provider.dart';
 import 'package:stockadvisor/providers/info_provider.dart';
 import 'package:stockadvisor/screens/stock_overview/constants.dart';
 import 'package:stockadvisor/screens/stock_overview/cupertino/info_row.dart';
 import 'package:stockadvisor/screens/stock_overview/cupertino/main_row.dart';
+import 'package:stockadvisor/protobuf/message.pb.dart';
 
 class CupertinoStockOverviewMainScreen extends StatefulWidget {
   static const routeName = '/stock_overview';
@@ -49,7 +53,6 @@ class CupertinoStockOverviewMainScreenState
 
   @override
   Widget build(BuildContext context) {
-    final mediaQuery = MediaQuery.of(context);
     final routeArgs =
         ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
     final String ticker = routeArgs['ticker']!;
@@ -57,7 +60,7 @@ class CupertinoStockOverviewMainScreenState
     // optimize
     provider.initTickerData(ticker: ticker);
 
-    final priceData = provider.getPriceData(ticker: ticker);
+    var priceData = provider.getPriceData(ticker: ticker);
     final tickerData = provider.getTickerData(ticker: ticker);
     final chartProvider = Provider.of<ChartProvider>(context);
     final infoProvider = Provider.of<InfoProvider>(context);
@@ -69,9 +72,6 @@ class CupertinoStockOverviewMainScreenState
       streamsInitialized = true;
     }
 
-    double position = 1 -
-        (priceData.dayHigh - priceData.lastClosePrice) /
-            (priceData.dayHigh - priceData.dayLow);
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         backgroundColor: kBlackColor.withOpacity(0.9),
@@ -86,7 +86,7 @@ class CupertinoStockOverviewMainScreenState
                   tickerData.companyLongName,
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
-                  style: TextStyle(fontWeight: FontWeight.w500),
+                  style: const TextStyle(fontWeight: FontWeight.w500),
                 ),
               ),
               SizedBox(
@@ -128,19 +128,53 @@ class CupertinoStockOverviewMainScreenState
           }
           return false;
         },
-        child: ListView(
-          controller: scrollController,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(bottom: 7.0),
-              child: CupertinoStockOverviewMainRow(
-                ticker: ticker,
-                priceData: priceData,
-                tickerData: tickerData,
-              ),
-            ),
-            CupertinoInfoRow(ticker: ticker),
-          ],
+        child: StreamBuilder(
+          stream: provider.channelController.stream,
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              var socketData =
+                  yaticker.fromBuffer(base64.decode(snapshot.data.toString()));
+              if (socketData.id == ticker.toUpperCase()) {
+                setState(() {
+                  priceData = YahooHelperPriceData(
+                    marketState: socketData.marketHours.toString(),
+                    currentMarketPrice: socketData.price,
+                    currentPercentage: socketData.changePercent,
+                    dayHigh: priceData.dayHigh,
+                    dayLow: priceData.dayLow,
+                    lastClosePrice: priceData.lastClosePrice,
+                    lastPercentage: priceData.lastPercentage,
+                    pe: priceData.pe,
+                    previousDayClose: priceData.previousDayClose,
+                    currency: priceData.currency,
+                    extendedMarketAvailable: priceData.extendedMarketAvailable,
+                    fiftyTwoWeekHigh: priceData.fiftyTwoWeekHigh,
+                    fiftyTwoWeekLow: priceData.fiftyTwoWeekLow,
+                    trailingAnnualDividendRate: priceData.trailingAnnualDividendRate,
+                    trailingAnnualDividendYield: priceData.trailingAnnualDividendYield,
+                    lastDividendTimestamp: priceData.lastDividendTimestamp,
+                    currentDelta: socketData.change,
+                    lastCloseDelta: priceData.lastCloseDelta,
+                  );
+                  // isWSAvailable = true;
+                });
+              }
+            }
+            return ListView(
+              controller: scrollController,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 7.0),
+                  child: CupertinoStockOverviewMainRow(
+                    ticker: ticker,
+                    priceData: priceData,
+                    tickerData: tickerData,
+                  ),
+                ),
+                CupertinoInfoRow(ticker: ticker),
+              ],
+            );
+          },
         ),
       ),
     );

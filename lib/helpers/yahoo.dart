@@ -100,7 +100,8 @@ class YahooHelper {
         final marketState = responseParsed["marketState"];
         double? currentMarketPrice;
         double? currentPercentage;
-        double? currentDelta;
+
+        // CHECKING MARKET STATE
         if (marketState == 'PRE') {
           currentMarketPrice = responseParsed["preMarketPrice"];
           currentPercentage = responseParsed["preMarketChangePercent"];
@@ -111,9 +112,22 @@ class YahooHelper {
           currentMarketPrice = responseParsed["postMarketPrice"];
           currentPercentage = responseParsed["postMarketChangePercent"];
         }
+
+        // DELTA CALCULATION
+        final double lastPriceDelta =
+            responseParsed["regularMarketPreviousClose"] *
+                responseParsed["regularMarketChangePercent"] /
+                100;
+        late double currentDelta;
+        if (currentMarketPrice == null || currentPercentage == null) {
+          currentDelta = lastPriceDelta;
+        } else {
+          currentDelta = currentMarketPrice * currentPercentage / 100;
+        }
+
         return YahooHelperPriceData(
-          currentDelta: 0,
-          lastCloseDelta: 0,
+          currentDelta: currentDelta,
+          lastCloseDelta: lastPriceDelta,
           marketState: marketState,
           currentMarketPrice:
               currentMarketPrice ?? responseParsed["regularMarketPrice"],

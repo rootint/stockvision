@@ -9,7 +9,6 @@ import 'package:stockadvisor/models/yahoo_models/price_data.dart';
 import 'package:stockadvisor/models/yahoo_models/spark_data.dart';
 import 'package:stockadvisor/painters/analytics_painter.dart';
 import 'package:stockadvisor/painters/earnings_painter.dart';
-import 'package:stockadvisor/painters/performance_painter.dart';
 import 'package:stockadvisor/providers/data_provider.dart';
 import 'package:stockadvisor/providers/info_provider.dart';
 import 'package:stockadvisor/providers/server/prediction_provider.dart';
@@ -38,13 +37,13 @@ class _CupertinoInfoRowState extends State<CupertinoInfoRow> {
   @override
   Widget build(BuildContext context) {
     final infoProvider = Provider.of<InfoProvider>(context);
-    final dataProvider = Provider.of<DataProvider>(context);
+    // final dataProvider = Provider.of<DataProvider>(context);
     final predictionProvider = Provider.of<PredictionProvider>(context);
     final mediaQuery = MediaQuery.of(context);
     YahooHelperInfoData tickerInfo =
         infoProvider.getInfoData(ticker: widget.ticker);
-    YahooHelperSparkData tickerGraph =
-        infoProvider.getChartData(ticker: widget.ticker);
+    // YahooHelperSparkData tickerGraph =
+    //     infoProvider.getChartData(ticker: widget.ticker);
     // YahooHelperSparkData sAndPGraph = dataProvider.getSAndPChart();
     YahooHelperPriceData priceData =
         Provider.of<DataProvider>(context).getPriceData(ticker: widget.ticker);
@@ -123,7 +122,7 @@ class _CupertinoInfoRowState extends State<CupertinoInfoRow> {
                     children: [
                       RichText(
                         text: TextSpan(
-                          text: prediction!.predictedPrice.toStringAsFixed(2),
+                          text: predictionPrice.toStringAsFixed(2),
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 15,

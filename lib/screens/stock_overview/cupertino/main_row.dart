@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:math';
 
 import 'package:intl/intl.dart';
@@ -35,7 +34,6 @@ class _CupertinoStockOverviewMainRowState
     extends State<CupertinoStockOverviewMainRow> with TickerProviderStateMixin {
   String selectedTimeframe = "1D";
   bool firstLoading = true;
-  bool isStreamInitialized = false;
 
   // Slider
 

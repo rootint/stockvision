@@ -7,7 +7,7 @@ import 'package:stockadvisor/models/yahoo_models/price_data.dart';
 import 'package:web_socket_channel/io.dart';
 
 class DataProvider extends ChangeNotifier {
-  final Map<String, YahooHelperPriceData?> _priceData = {};
+  final Map<String, YahooHelperPriceData> _priceData = {};
   final Map<String, YahooHelperMetaData> _tickerData = {};
   final channel = IOWebSocketChannel.connect(
       Uri.parse('wss://streamer.finance.yahoo.com/'));
