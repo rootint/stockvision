@@ -1,13 +1,14 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:stockadvisor/constants.dart';
 import 'package:stockadvisor/models/server_models/prediction_ticker.dart';
-import 'package:stockadvisor/models/yahoo_models/meta_data.dart';
 import 'package:stockadvisor/providers/data_provider.dart';
 import 'package:stockadvisor/providers/theme_provider.dart';
 import 'package:stockadvisor/screens/stock_overview/cupertino/main_screen.dart';
+import 'package:stockadvisor/protobuf/message.pb.dart';
 
 class CupertinoTickerPredictionCard extends StatefulWidget {
   final PredictionTicker ticker;
@@ -26,30 +27,34 @@ class CupertinoTickerPredictionCard extends StatefulWidget {
 class _CupertinoTickerPredictionCardState
     extends State<CupertinoTickerPredictionCard> {
   @override
-  void deactivate() {
-    var provider = Provider.of<DataProvider>(context, listen: false);
-    // provider.removeTickerPriceStream(ticker: widget.ticker.ticker);
-    super.deactivate();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     final darkModeEnabled =
         Provider.of<ThemeProvider>(context).isDarkModeEnabled;
-
-    return Consumer<DataProvider>(
-      builder: (context, provider, _) {
-        if (!widget.init) {
-          provider.initTickerData(ticker: widget.ticker.ticker);
-          widget.init = true;
+    final provider = Provider.of<DataProvider>(context);
+    if (!widget.init) {
+      provider.initTickerData(ticker: widget.ticker.ticker);
+      widget.init = true;
+    }
+    var data = provider.getPriceData(ticker: widget.ticker.ticker);
+    var tickerData = provider.getTickerData(ticker: widget.ticker.ticker);
+    final predictionPriceDelta =
+        widget.ticker.predictedPrice - data.currentMarketPrice;
+    final predictionPricePercent =
+        (predictionPriceDelta / data.lastClosePrice) * 100;
+    var currentPrice = data.currentMarketPrice;
+    return StreamBuilder(
+      stream: provider.channelController.stream,
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          var socketData =
+              yaticker.fromBuffer(base64.decode(snapshot.data.toString()));
+          if (socketData.id == widget.ticker.ticker.toUpperCase()) {
+            setState(() {
+              currentPrice = socketData.price;
+            });
+          }
         }
-        var data = provider.getPriceData(ticker: widget.ticker.ticker);
-        var tickerData = provider.getTickerData(ticker: widget.ticker.ticker);
-        final predictionPriceDelta =
-            widget.ticker.predictedPrice - data.lastClosePrice;
-        final predictionPricePercent =
-            (predictionPriceDelta / data.lastClosePrice) * 100;
         return Padding(
           padding: const EdgeInsets.only(left: 10.0),
           child: GestureDetector(
@@ -74,7 +79,6 @@ class _CupertinoTickerPredictionCardState
                       child: SvgPicture.string(
                         tickerData.iconSvg,
                         height: 47,
-                        // fit: BoxFit.scaleDown,
                       ),
                     ),
                   ),
@@ -89,7 +93,7 @@ class _CupertinoTickerPredictionCardState
                         children: [
                           Text(
                             widget.ticker.ticker.toUpperCase(),
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontWeight: FontWeight.w500,
                               fontSize: 15,
                             ),
@@ -98,13 +102,12 @@ class _CupertinoTickerPredictionCardState
                             tickerData.companyLongName,
                             overflow: TextOverflow.ellipsis,
                             maxLines: 1,
-                            style: TextStyle(
-                              // fontWeight: FontWeight.w500,
+                            style: const TextStyle(
                               color: CupertinoColors.systemGrey2,
                               fontSize: 14,
                             ),
                           ),
-                          Text(
+                          const Text(
                             'Prediction:',
                             overflow: TextOverflow.ellipsis,
                             maxLines: 1,
@@ -130,7 +133,7 @@ class _CupertinoTickerPredictionCardState
                         children: [
                           RichText(
                             text: TextSpan(
-                              text: data.lastClosePrice.toStringAsFixed(2),
+                              text: currentPrice.toStringAsFixed(2),
                               style: TextStyle(
                                 color: darkModeEnabled
                                     ? CupertinoColors.white
@@ -141,7 +144,7 @@ class _CupertinoTickerPredictionCardState
                               children: [
                                 TextSpan(
                                   text: tickerData.currency,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     color: CupertinoColors.systemGrey2,
                                     fontSize: 15,
                                   ),
@@ -153,7 +156,7 @@ class _CupertinoTickerPredictionCardState
                           ),
                           Text(
                             widget.ticker.atClose ? 'At close:' : 'At open:',
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 15,
                             ),
                           ),
