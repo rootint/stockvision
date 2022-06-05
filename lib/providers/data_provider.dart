@@ -34,8 +34,9 @@ class DataProvider extends ChangeNotifier {
     print('removed $ticker');
   }
 
-  Future<void> initTickerData({required String ticker}) async {
-    if (!_tickerData.containsKey(ticker)) {
+  Future<void> initTickerData(
+      {required String ticker, bool fromOverview = false}) async {
+    if (!_tickerData.containsKey(ticker) || fromOverview) {
       _tickerData[ticker] = await YahooHelper.getStockMetadata(ticker: ticker);
       _priceData[ticker] = await YahooHelper.getCurrentPrice(ticker);
       print('ticker data init!');
@@ -55,6 +56,7 @@ class DataProvider extends ChangeNotifier {
         lastCloseDelta: 0.0,
         currentMarketPrice: 0.0,
         currentPercentage: 0.0,
+        openPrice: 0.0,
         dayHigh: 0.0,
         dayLow: 0.0,
         lastClosePrice: 0.0,

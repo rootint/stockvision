@@ -17,6 +17,7 @@ class YahooHelperPriceData {
   final double trailingAnnualDividendRate;
   final double trailingAnnualDividendYield;
   final int lastDividendTimestamp;
+  final double openPrice;
   YahooHelperPriceData({
     required this.marketState,
     required this.currentMarketPrice,
@@ -36,5 +37,6 @@ class YahooHelperPriceData {
     required this.lastDividendTimestamp,
     required this.currentDelta,
     required this.lastCloseDelta,
+    required this.openPrice,
   });
 }

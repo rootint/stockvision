@@ -128,10 +128,15 @@ class HoldingsProvider with ChangeNotifier {
     // via an authenticated request to the server
   }
 
+  bool containsTicker(String ticker) {
+    return _holdingsList.containsKey(ticker);
+  }
+
   String generateServerString({required HoldingsTicker data}) {
     return "${data.ticker};${data.amount};${data.avgShareCost}";
   }
 
   // List<HoldingsTicker> get holdingsList => _holdings.values.toList();
   Holdings get holdings => _holdings;
+  Map<String, HoldingsTicker> get holdingsMap => _holdingsList;
 }

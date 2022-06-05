@@ -30,7 +30,6 @@ class InfoProvider extends ChangeNotifier {
 
     void tick() async {
       final data = await YahooHelper.getTickerInfo(ticker);
-      // final data = await compute(YahooHelper.getTickerInfo, ticker);
       controller.add(data);
     }
 
@@ -38,7 +37,7 @@ class InfoProvider extends ChangeNotifier {
       if (timer == null) {
         tick();
       }
-      timer = Timer.periodic(const Duration(seconds: 175), (_) => tick());
+      timer = Timer.periodic(const Duration(seconds: 600), (_) => tick());
     }
 
     void stop() {

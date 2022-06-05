@@ -60,13 +60,13 @@ class CupertinoStockOverviewMainScreenState
     final provider = Provider.of<DataProvider>(context);
     final watchlistProvider = Provider.of<WatchlistProvider>(context);
     // optimize
-    provider.initTickerData(ticker: ticker);
 
     var priceData = provider.getPriceData(ticker: ticker);
     final tickerData = provider.getTickerData(ticker: ticker);
     final chartProvider = Provider.of<ChartProvider>(context);
     final infoProvider = Provider.of<InfoProvider>(context);
     if (!streamsInitialized) {
+      provider.initTickerData(ticker: ticker, fromOverview: true);
       chartProvider.initChartStream(
           ticker: ticker, range: rangeConversionMap['1D']!);
       print('stream init main');
@@ -169,6 +169,7 @@ class CupertinoStockOverviewMainScreenState
                     lastDividendTimestamp: priceData.lastDividendTimestamp,
                     currentDelta: socketData.change,
                     lastCloseDelta: priceData.lastCloseDelta,
+                    openPrice: priceData.openPrice,
                   );
                   // isWSAvailable = true;
                 });

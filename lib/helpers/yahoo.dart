@@ -135,6 +135,7 @@ class YahooHelper {
               currentPercentage ?? responseParsed["regularMarketChangePercent"],
           dayHigh: responseParsed["regularMarketDayHigh"],
           dayLow: responseParsed["regularMarketDayLow"],
+          openPrice: responseParsed["regularMarketOpen"],
           lastClosePrice: responseParsed["regularMarketPrice"],
           lastPercentage: responseParsed["regularMarketChangePercent"],
           pe: responseParsed["trailingPE"] ?? 'N/A',
