@@ -7,6 +7,7 @@ import 'package:stockadvisor/models/yahoo_models/price_data.dart';
 import 'package:stockadvisor/providers/chart_provider.dart';
 import 'package:stockadvisor/providers/data_provider.dart';
 import 'package:stockadvisor/providers/info_provider.dart';
+import 'package:stockadvisor/providers/server/watchlist_provider.dart';
 import 'package:stockadvisor/screens/stock_overview/constants.dart';
 import 'package:stockadvisor/screens/stock_overview/cupertino/info_row.dart';
 import 'package:stockadvisor/screens/stock_overview/cupertino/main_row.dart';
@@ -57,6 +58,7 @@ class CupertinoStockOverviewMainScreenState
         ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
     final String ticker = routeArgs['ticker']!;
     final provider = Provider.of<DataProvider>(context);
+    final watchlistProvider = Provider.of<WatchlistProvider>(context);
     // optimize
     provider.initTickerData(ticker: ticker);
 
@@ -107,8 +109,18 @@ class CupertinoStockOverviewMainScreenState
         ),
         trailing: CupertinoButton(
           padding: EdgeInsets.zero,
-          child: const Icon(CupertinoIcons.star),
-          onPressed: () {},
+          child: Icon(
+            (watchlistProvider.containsInWatchlist(ticker: ticker))
+                ? CupertinoIcons.star_fill
+                : CupertinoIcons.star,
+          ),
+          onPressed: () {
+            if (watchlistProvider.containsInWatchlist(ticker: ticker)) {
+              watchlistProvider.removeTickerFromWatchlist(ticker: ticker);
+            } else {
+              watchlistProvider.addTickerToWatchlist(ticker: ticker);
+            }
+          },
           alignment: Alignment.centerRight,
         ),
       ),
@@ -150,8 +162,10 @@ class CupertinoStockOverviewMainScreenState
                     extendedMarketAvailable: priceData.extendedMarketAvailable,
                     fiftyTwoWeekHigh: priceData.fiftyTwoWeekHigh,
                     fiftyTwoWeekLow: priceData.fiftyTwoWeekLow,
-                    trailingAnnualDividendRate: priceData.trailingAnnualDividendRate,
-                    trailingAnnualDividendYield: priceData.trailingAnnualDividendYield,
+                    trailingAnnualDividendRate:
+                        priceData.trailingAnnualDividendRate,
+                    trailingAnnualDividendYield:
+                        priceData.trailingAnnualDividendYield,
                     lastDividendTimestamp: priceData.lastDividendTimestamp,
                     currentDelta: socketData.change,
                     lastCloseDelta: priceData.lastCloseDelta,

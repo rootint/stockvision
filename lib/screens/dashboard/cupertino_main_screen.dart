@@ -104,7 +104,7 @@ class CupertinoDashboardMainScreenState
               );
             } else {
               return Dismissible(
-                key: Key(watchlist[index]),
+                key: Key(watchlist[index - 1]),
                 background: Container(
                   color: CupertinoColors.systemRed,
                   alignment: Alignment.centerRight,
@@ -117,16 +117,16 @@ class CupertinoDashboardMainScreenState
                 direction: DismissDirection.endToStart,
                 onDismissed: (direction) {
                   listProvider.removeTickerFromWatchlist(
-                      ticker: watchlist[index]);
+                      ticker: watchlist[index - 1]);
                 },
                 child: CupertinoTickerCard(
-                  ticker: watchlist[index],
-                  key: Key(watchlist[index]),
+                  ticker: watchlist[index - 1],
+                  key: Key(watchlist[index - 1]),
                 ),
               );
             }
           },
-          itemCount: watchlist.length,
+          itemCount: watchlist.length + 1,
           // itemCount: 3,
         ),
       ),

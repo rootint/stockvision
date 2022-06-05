@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 
 class WatchlistProvider extends ChangeNotifier {
   List<String> _watchlist = [
-    'begin',
     'aapl',
     'amd',
     'nvda',
