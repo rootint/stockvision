@@ -44,7 +44,7 @@ class _CupertinoSearchMainScreenState extends State<CupertinoSearchMainScreen> {
                       controller: textController,
                       onChanged: (q) async {
                         if (textController.text.isNotEmpty) {
-                          var data = await YahooHelper.getSearchData(query: q);
+                          var data = await YahooHelper.getSearchData(q);
                           setState(() {
                             _displayData = data;
                           });

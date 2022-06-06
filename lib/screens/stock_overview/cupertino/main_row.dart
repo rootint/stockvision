@@ -10,7 +10,7 @@ import 'package:stockadvisor/models/yahoo_models/chart_data.dart';
 import 'package:stockadvisor/models/yahoo_models/meta_data.dart';
 import 'package:stockadvisor/models/yahoo_models/price_data.dart';
 import 'package:stockadvisor/painters/graph_painter.dart';
-import 'package:stockadvisor/providers/chart_provider.dart';
+import 'package:stockadvisor/providers/yahoo/chart_provider.dart';
 import 'package:stockadvisor/screens/stock_overview/constants.dart';
 
 class CupertinoStockOverviewMainRow extends StatefulWidget {
@@ -99,12 +99,12 @@ class _CupertinoStockOverviewMainRowState
 
   void changeTimeframe(String timeframe, String ticker) {
     setState(() {
-      final chartProvider = Provider.of<ChartProvider>(context, listen: false);
+      final chartProvider =
+          Provider.of<YahooChartProvider>(context, listen: false);
       prevChartData = chartProvider.getChartData(
-          ticker: ticker, range: rangeConversionMap[selectedTimeframe]!);
+          ticker, rangeConversionMap[selectedTimeframe]!);
       chartProvider.removeChartStream();
-      chartProvider.initChartStream(
-          ticker: ticker, range: rangeConversionMap[timeframe]!);
+      chartProvider.initChartStream(ticker, rangeConversionMap[timeframe]!);
       reverseAnimation = true;
       isTimeframeChanged = true;
       selectedTimeframe = timeframe;
@@ -137,19 +137,18 @@ class _CupertinoStockOverviewMainRowState
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
-    final chartProvider = Provider.of<ChartProvider>(context);
+    final chartProvider = Provider.of<YahooChartProvider>(context);
 
     double prevPeriodClose = 0.0;
     if (firstLoading) {
       prevPeriodClose = widget.priceData.previousDayClose;
     } else {
       prevPeriodClose = chartProvider
-          .getChartData(
-              ticker: widget.ticker,
-              range: rangeConversionMap[selectedTimeframe]!)
+          .getChartData(widget.ticker, rangeConversionMap[selectedTimeframe]!)
           .previousClose;
-      if (prevPeriodClose == 0 && prevChartData != null)
+      if (prevPeriodClose == 0 && prevChartData != null) {
         prevPeriodClose = prevChartData!.previousClose;
+      }
     }
 
     // data for main market period
@@ -204,7 +203,9 @@ class _CupertinoStockOverviewMainRowState
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8.0),
                   child: Text(
-                    '${widget.tickerData.companyLongName} • ${widget.priceData.currency} • ${widget.priceData.marketState == "REGULAR" ? "Open" : "Closed"}',
+                    widget.tickerData.companyLongName +
+                        ' • ${widget.priceData.currency}' +
+                        ' • ${widget.priceData.marketState == "REGULAR" || widget.priceData.marketState == "REGULAR_MARKET" ? "Open" : "Closed"}',
                     textAlign: TextAlign.center,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -292,11 +293,10 @@ class _CupertinoStockOverviewMainRowState
         SizedBox(
           width: mediaQuery.size.width,
           height: 250,
-          child: Consumer<ChartProvider>(
+          child: Consumer<YahooChartProvider>(
             builder: (context, provider, _) {
               var data = provider.getChartData(
-                  ticker: widget.ticker,
-                  range: rangeConversionMap[selectedTimeframe]!);
+                  widget.ticker, rangeConversionMap[selectedTimeframe]!);
               if (prevChartData == null && data.close.isEmpty) {
                 return Stack(
                   children: [

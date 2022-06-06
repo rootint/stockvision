@@ -1,8 +1,6 @@
 import 'package:flutter/cupertino.dart';
-import 'package:provider/provider.dart';
 import 'package:stockadvisor/constants.dart';
 import 'package:stockadvisor/models/yahoo_models/price_data.dart';
-import 'package:stockadvisor/providers/data_provider.dart';
 
 class CupertinoStockOverviewBottomRow extends StatelessWidget {
   final String ticker;

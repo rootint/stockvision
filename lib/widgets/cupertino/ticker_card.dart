@@ -6,8 +6,9 @@ import 'package:provider/provider.dart';
 import 'package:stockadvisor/constants.dart';
 import 'package:stockadvisor/models/yahoo_models/price_data.dart';
 import 'package:stockadvisor/models/yahoo_models/socket_data.dart';
-import 'package:stockadvisor/providers/data_provider.dart';
 import 'package:stockadvisor/providers/theme_provider.dart';
+import 'package:stockadvisor/providers/yahoo/meta_provider.dart';
+import 'package:stockadvisor/providers/yahoo/price_provider.dart';
 import 'package:stockadvisor/screens/stock_overview/cupertino/main_screen.dart';
 import 'package:stockadvisor/protobuf/message.pb.dart';
 
@@ -25,90 +26,48 @@ class CupertinoTickerCard extends StatefulWidget {
 }
 
 class _CupertinoTickerCardState extends State<CupertinoTickerCard> {
-  YahooHelperSocketData cache = YahooHelperSocketData();
-
   @override
   void deactivate() {
-    var provider = Provider.of<DataProvider>(context, listen: false);
-    provider.unsubscribeFromWebsocket(widget.ticker);
+    var provider = Provider.of<YahooPriceProvider>(context, listen: false);
+    provider.removePriceStream(widget.ticker);
     super.deactivate();
   }
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<DataProvider>(context);
-    YahooHelperPriceData priceData =
-        provider.getPriceData(ticker: widget.ticker);
+    final provider = Provider.of<YahooPriceProvider>(context);
+    YahooHelperPriceData priceData = provider.getPriceData(widget.ticker);
     bool isWSAvailable = false;
 
     if (!widget.init) {
-      provider.initTickerData(ticker: widget.ticker);
+      provider.initPriceStream(widget.ticker);
       widget.init = true;
-      provider.subscribeToWebsocket(widget.ticker);
     }
 
-    return FutureBuilder(
-      future: provider.initTickerData(ticker: widget.ticker),
-      builder: (context, futureData) => StreamBuilder(
-        stream: provider.channelController.stream,
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            var socketData =
-                yaticker.fromBuffer(base64.decode(snapshot.data.toString()));
-            if (socketData.id == widget.ticker.toUpperCase()) {
-              setState(() {
-                cache.currentPercentage = socketData.changePercent;
-                cache.currentDelta = socketData.change;
-                cache.currentMarketPrice = socketData.price;
-                cache.marketHours = socketData.marketHours.toString();
-                isWSAvailable = true;
-              });
-            }
-          } else if (futureData.connectionState == ConnectionState.done) {
-            priceData = provider.getPriceData(ticker: widget.ticker);
-            cache.lastPercentage = priceData.lastPercentage;
-            cache.lastCloseDelta = priceData.lastCloseDelta;
-            cache.lastClosePrice = priceData.lastClosePrice;
-            cache.marketHours = priceData.marketState;
-            cache.currentDelta = priceData.currentDelta;
-            cache.currentMarketPrice = priceData.currentMarketPrice;
-            cache.currentPercentage = priceData.currentPercentage;
-          }
-          return TickerCard(
-            cache,
-            widget.ticker,
-            provider,
-            priceData,
-            isWSAvailable,
-          );
-        },
-      ),
+    return TickerCard(
+      widget.ticker,
+      provider,
+      priceData,
+      isWSAvailable,
     );
   }
 }
 
 class TickerCard extends StatelessWidget {
-  YahooHelperSocketData cache;
   final String ticker;
-  final DataProvider provider;
+  final YahooPriceProvider provider;
   final YahooHelperPriceData data;
   final bool isWSAvailable;
-  TickerCard(
-      this.cache, this.ticker, this.provider, this.data, this.isWSAvailable,
+  TickerCard(this.ticker, this.provider, this.data, this.isWSAvailable,
       {Key? key})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
-    var tickerData = provider.getTickerData(ticker: ticker);
+    var metadata = Provider.of<YahooMetaProvider>(context).getMetaData(ticker);
     final darkModeEnabled =
         Provider.of<ThemeProvider>(context).isDarkModeEnabled;
-    if (isWSAvailable) {
-      cache.lastCloseDelta = cache.currentDelta;
-      cache.lastClosePrice = cache.currentMarketPrice;
-      cache.lastPercentage = cache.currentPercentage;
-    }
     return Padding(
       padding: const EdgeInsets.only(left: 10.0),
       child: GestureDetector(
@@ -131,7 +90,7 @@ class TickerCard extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(15),
                   child: SvgPicture.string(
-                    tickerData.iconSvg,
+                    metadata.iconSvg,
                     height: 47,
                   ),
                 ),
@@ -155,8 +114,8 @@ class TickerCard extends StatelessWidget {
                               fontSize: 15,
                             ),
                           ),
-                          if (cache.marketHours != "REGULAR_MARKET" &&
-                              cache.marketHours != '' &&
+                          if (data.marketState != "REGULAR_MARKET" &&
+                              data.marketState != '' && data.marketState != "REGULAR" && 
                               data.extendedMarketAvailable != false)
                             Container(
                               decoration: BoxDecoration(
@@ -172,34 +131,40 @@ class TickerCard extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
                                     Icon(
-                                      (cache.marketHours == "CLOSED")
+                                      (data.marketState == "CLOSED")
                                           ? CupertinoIcons.moon_stars_fill
-                                          : (cache.marketHours == "PRE_MARKET")
+                                          : (data.marketState ==
+                                                      "PRE_MARKET" ||
+                                                  data.marketState == "PRE")
                                               ? CupertinoIcons.sun_max_fill
                                               : CupertinoIcons.moon_fill,
-                                      color: (cache.marketHours == 'CLOSED')
+                                      color: (data.marketState == 'CLOSED')
                                           ? CupertinoColors.inactiveGray
-                                          : (cache.marketHours == "PRE_MARKET")
+                                          : (data.marketState ==
+                                                      "PRE_MARKET" ||
+                                                  data.marketState == "PRE")
                                               ? kSecondaryColor
                                               : kPrimaryColor,
                                       size: 15,
                                     ),
                                     Text(
                                       '  ' +
-                                          ((cache.currentPercentage >= 0)
+                                          ((data.currentPercentage >= 0)
                                               ? '↑'
                                               : '↓') +
-                                          cache.currentPercentage
+                                          data.currentPercentage
                                               .abs()
                                               .toStringAsFixed(2) +
                                           '%',
                                       style: TextStyle(
-                                        color: (cache.marketHours.toString() !=
-                                                "REGULAR_MARKET")
-                                            ? CupertinoColors.inactiveGray
-                                            : (cache.currentPercentage >= 0)
+                                        color: (![
+                                          "PRE_MARKET, POST_MARKET, PRE, POST"
+                                        ].contains(
+                                                data.marketState.toString()))
+                                            ? (data.currentPercentage >= 0)
                                                 ? kGreenColor
-                                                : kRedColor,
+                                                : kRedColor
+                                            : CupertinoColors.inactiveGray,
                                         fontSize: 12,
                                       ),
                                     ),
@@ -210,7 +175,7 @@ class TickerCard extends StatelessWidget {
                         ],
                       ),
                       Text(
-                        tickerData.companyLongName,
+                        metadata.companyLongName,
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
                         style: const TextStyle(
@@ -235,7 +200,7 @@ class TickerCard extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         text: TextSpan(
-                          text: cache.lastClosePrice.toStringAsFixed(2),
+                          text: data.lastClosePrice.toStringAsFixed(2),
                           style: TextStyle(
                             color: darkModeEnabled
                                 ? CupertinoColors.white
@@ -245,7 +210,7 @@ class TickerCard extends StatelessWidget {
                           ),
                           children: [
                             TextSpan(
-                              text: tickerData.currency,
+                              text: metadata.currency,
                               style: const TextStyle(
                                 color: CupertinoColors.systemGrey2,
                                 fontSize: 15,
@@ -255,16 +220,17 @@ class TickerCard extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        ((cache.lastPercentage >= 0) ? '↑' : '↓') +
-                            cache.lastPercentage.abs().toStringAsFixed(2) +
+                        ((data.lastPercentage >= 0) ? '↑' : '↓') +
+                            data.lastPercentage.abs().toStringAsFixed(2) +
                             '%',
                         style: TextStyle(
                           fontSize: 15,
-                          color: (cache.lastPercentage == 0.0 ||
-                                  cache.marketHours.toString() !=
-                                      "REGULAR_MARKET")
+                          color: (data.lastPercentage == 0.0 ||
+                                  data.marketState.toString() !=
+                                          "REGULAR_MARKET" &&
+                                      data.marketState != "REGULAR")
                               ? CupertinoColors.inactiveGray
-                              : (cache.lastPercentage > 0)
+                              : (data.lastPercentage > 0)
                                   ? kGreenColor
                                   : kRedColor,
                           fontWeight: FontWeight.w500,

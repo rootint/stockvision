@@ -1,19 +1,18 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:provider/provider.dart';
 import 'package:stockadvisor/helpers/route.dart';
-import 'package:stockadvisor/providers/chart_provider.dart';
-import 'package:stockadvisor/providers/data_provider.dart';
-import 'package:stockadvisor/providers/info_provider.dart';
 import 'package:stockadvisor/providers/server/holdings_provider.dart';
 import 'package:stockadvisor/providers/server/prediction_provider.dart';
 import 'package:stockadvisor/providers/server/watchlist_provider.dart';
 import 'package:stockadvisor/providers/theme_provider.dart';
-import 'package:stockadvisor/screens/dashboard/material_main_screen.dart';
+import 'package:stockadvisor/providers/yahoo/chart_provider.dart';
+import 'package:stockadvisor/providers/yahoo/info_provider.dart';
+import 'package:stockadvisor/providers/yahoo/meta_provider.dart';
+import 'package:stockadvisor/providers/yahoo/price_provider.dart';
 import 'package:stockadvisor/screens/holdings/cupertino/alltime_provider.dart';
 import 'package:stockadvisor/theme.dart';
 
@@ -34,16 +33,21 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<ThemeProvider>(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider<DataProvider>(create: (_) => DataProvider()),
-        ChangeNotifierProvider<ChartProvider>(create: (_) => ChartProvider()),
-        ChangeNotifierProvider<InfoProvider>(create: (_) => InfoProvider()),
+        ChangeNotifierProvider<YahooChartProvider>(
+            create: (_) => YahooChartProvider()),
+        ChangeNotifierProvider<YahooPriceProvider>(
+            create: (_) => YahooPriceProvider()),
+            ChangeNotifierProvider<YahooMetaProvider>(
+            create: (_) => YahooMetaProvider()),
+        ChangeNotifierProvider<YahooInfoProvider>(
+            create: (_) => YahooInfoProvider()),
         ChangeNotifierProvider<WatchlistProvider>(
             create: (_) => WatchlistProvider()),
         ChangeNotifierProvider<PredictionProvider>(
             create: (_) => PredictionProvider()),
         ChangeNotifierProvider<AllTimeProvider>(
             create: (_) => AllTimeProvider()),
-        ChangeNotifierProxyProvider<DataProvider, HoldingsProvider>(
+        ChangeNotifierProxyProvider<YahooPriceProvider, HoldingsProvider>(
           create: (_) => HoldingsProvider(),
           update: (_, data, holdings) => holdings!..update(data),
         ),

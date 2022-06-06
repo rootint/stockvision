@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:stockadvisor/constants.dart';
 import 'package:stockadvisor/models/server_models/holdings.dart';
-import 'package:stockadvisor/providers/data_provider.dart';
 import 'package:stockadvisor/providers/server/holdings_provider.dart';
 import 'package:stockadvisor/providers/theme_provider.dart';
 import 'package:stockadvisor/screens/holdings/cupertino/alltime_provider.dart';

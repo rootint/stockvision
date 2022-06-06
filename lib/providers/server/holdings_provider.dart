@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:stockadvisor/models/server_models/holdings.dart';
 import 'package:stockadvisor/models/server_models/holdings_ticker.dart';
-import 'package:stockadvisor/providers/data_provider.dart';
+import 'package:stockadvisor/providers/yahoo/price_provider.dart';
 
 /*
   server:
@@ -52,7 +52,7 @@ class HoldingsProvider with ChangeNotifier {
     initHoldingsData();
   }
 
-  void update(DataProvider data) {
+  void update(YahooPriceProvider data) {
     double deltaToday = 0.0;
     double deltaTodayPercent = 0.0;
     double deltaAlltime = 0.0;
@@ -61,8 +61,8 @@ class HoldingsProvider with ChangeNotifier {
     double overallBuyPrice = 0.0;
     double onMarketOpenWorth = 0.0;
     _holdingsList.forEach((key, value) {
-      currentWorth += data.getPriceData(ticker: key).currentMarketPrice * value.amount;
-      onMarketOpenWorth += data.getPriceData(ticker: key).previousDayClose * value.amount;
+      currentWorth += data.getPriceData(key).currentMarketPrice * value.amount;
+      onMarketOpenWorth += data.getPriceData(key).previousDayClose * value.amount;
       overallBuyPrice += value.avgShareCost * value.amount;
     });
     deltaAlltime = currentWorth - overallBuyPrice;

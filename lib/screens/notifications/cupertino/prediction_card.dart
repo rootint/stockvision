@@ -4,8 +4,8 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:stockadvisor/constants.dart';
 import 'package:stockadvisor/models/server_models/prediction_ticker.dart';
-import 'package:stockadvisor/providers/data_provider.dart';
 import 'package:stockadvisor/providers/theme_provider.dart';
+import 'package:stockadvisor/providers/yahoo/meta_provider.dart';
 
 class CupertinoNotificationPredictionCard extends StatefulWidget {
   final PredictionTicker data;
@@ -25,10 +25,11 @@ class CupertinoNotificationPredictionCardState
   Widget build(BuildContext context) {
     final darkModeEnabled =
         Provider.of<ThemeProvider>(context).isDarkModeEnabled;
-    final metadataProvider = Provider.of<DataProvider>(context);
-    metadataProvider.initTickerData(ticker: widget.data.ticker);
+    final metadataProvider = Provider.of<YahooMetaProvider>(context);
+    // metadataProvider.initTickerData(ticker: widget.data.ticker);
+    metadataProvider.initTickerData(widget.data.ticker);
     final tickerMetadata =
-        metadataProvider.getTickerData(ticker: widget.data.ticker);
+        metadataProvider.getMetaData(widget.data.ticker);
     return SizedBox(
       height: 70,
       child: Row(

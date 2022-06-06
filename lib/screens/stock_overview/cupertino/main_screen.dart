@@ -4,10 +4,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:stockadvisor/constants.dart';
 import 'package:stockadvisor/models/yahoo_models/price_data.dart';
-import 'package:stockadvisor/providers/chart_provider.dart';
-import 'package:stockadvisor/providers/data_provider.dart';
-import 'package:stockadvisor/providers/info_provider.dart';
 import 'package:stockadvisor/providers/server/watchlist_provider.dart';
+import 'package:stockadvisor/providers/yahoo/chart_provider.dart';
+import 'package:stockadvisor/providers/yahoo/info_provider.dart';
+import 'package:stockadvisor/providers/yahoo/meta_provider.dart';
+import 'package:stockadvisor/providers/yahoo/price_provider.dart';
 import 'package:stockadvisor/screens/stock_overview/constants.dart';
 import 'package:stockadvisor/screens/stock_overview/cupertino/info_row.dart';
 import 'package:stockadvisor/screens/stock_overview/cupertino/main_row.dart';
@@ -37,9 +38,9 @@ class CupertinoStockOverviewMainScreenState
 
   @override
   void deactivate() {
-    final chartProvider = Provider.of<ChartProvider>(context);
+    final chartProvider = Provider.of<YahooChartProvider>(context);
     chartProvider.removeChartStream();
-    final infoProvider = Provider.of<InfoProvider>(context);
+    final infoProvider = Provider.of<YahooInfoProvider>(context);
     infoProvider.removeInfoStream();
     super.deactivate();
   }
@@ -57,20 +58,20 @@ class CupertinoStockOverviewMainScreenState
     final routeArgs =
         ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
     final String ticker = routeArgs['ticker']!;
-    final provider = Provider.of<DataProvider>(context);
+    final provider = Provider.of<YahooPriceProvider>(context);
     final watchlistProvider = Provider.of<WatchlistProvider>(context);
     // optimize
 
-    var priceData = provider.getPriceData(ticker: ticker);
-    final tickerData = provider.getTickerData(ticker: ticker);
-    final chartProvider = Provider.of<ChartProvider>(context);
-    final infoProvider = Provider.of<InfoProvider>(context);
+    var priceData = provider.getPriceData(ticker);
+    final metadata =
+        Provider.of<YahooMetaProvider>(context).getMetaData(ticker);
+    final chartProvider = Provider.of<YahooChartProvider>(context);
+    final infoProvider = Provider.of<YahooInfoProvider>(context);
     if (!streamsInitialized) {
-      provider.initTickerData(ticker: ticker, fromOverview: true);
-      chartProvider.initChartStream(
-          ticker: ticker, range: rangeConversionMap['1D']!);
+      provider.initPriceStream(ticker);
+      chartProvider.initChartStream(ticker, rangeConversionMap['1D']!);
       print('stream init main');
-      infoProvider.initInfoStream(ticker: ticker);
+      infoProvider.initInfoStream(ticker);
       streamsInitialized = true;
     }
 
@@ -85,7 +86,7 @@ class CupertinoStockOverviewMainScreenState
               Padding(
                 padding: const EdgeInsets.only(bottom: 2.0),
                 child: Text(
-                  tickerData.companyLongName,
+                  metadata.companyLongName,
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
                   style: const TextStyle(fontWeight: FontWeight.w500),
@@ -140,56 +141,19 @@ class CupertinoStockOverviewMainScreenState
           }
           return false;
         },
-        child: StreamBuilder(
-          stream: provider.channelController.stream,
-          builder: (context, snapshot) {
-            if (snapshot.hasData) {
-              var socketData =
-                  yaticker.fromBuffer(base64.decode(snapshot.data.toString()));
-              if (socketData.id == ticker.toUpperCase()) {
-                setState(() {
-                  priceData = YahooHelperPriceData(
-                    marketState: socketData.marketHours.toString(),
-                    currentMarketPrice: socketData.price,
-                    currentPercentage: socketData.changePercent,
-                    dayHigh: priceData.dayHigh,
-                    dayLow: priceData.dayLow,
-                    lastClosePrice: priceData.lastClosePrice,
-                    lastPercentage: priceData.lastPercentage,
-                    pe: priceData.pe,
-                    previousDayClose: priceData.previousDayClose,
-                    currency: priceData.currency,
-                    extendedMarketAvailable: priceData.extendedMarketAvailable,
-                    fiftyTwoWeekHigh: priceData.fiftyTwoWeekHigh,
-                    fiftyTwoWeekLow: priceData.fiftyTwoWeekLow,
-                    trailingAnnualDividendRate:
-                        priceData.trailingAnnualDividendRate,
-                    trailingAnnualDividendYield:
-                        priceData.trailingAnnualDividendYield,
-                    lastDividendTimestamp: priceData.lastDividendTimestamp,
-                    currentDelta: socketData.change,
-                    lastCloseDelta: priceData.lastCloseDelta,
-                    openPrice: priceData.openPrice,
-                  );
-                  // isWSAvailable = true;
-                });
-              }
-            }
-            return ListView(
-              controller: scrollController,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 7.0),
-                  child: CupertinoStockOverviewMainRow(
-                    ticker: ticker,
-                    priceData: priceData,
-                    tickerData: tickerData,
-                  ),
-                ),
-                CupertinoInfoRow(ticker: ticker),
-              ],
-            );
-          },
+        child: ListView(
+          controller: scrollController,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(bottom: 7.0),
+              child: CupertinoStockOverviewMainRow(
+                ticker: ticker,
+                priceData: priceData,
+                tickerData: metadata,
+              ),
+            ),
+            CupertinoInfoRow(ticker: ticker),
+          ],
         ),
       ),
     );

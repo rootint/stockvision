@@ -22,8 +22,11 @@ const List<String> availableTimeframes = [
 const marketStateConversionMap = {
   'PREPRE': 'Post:',
   'PRE': 'Pre:',
+  'PRE_MARKET': 'Pre:',
   'REGULAR': '',
+  'REGULAR_MARKET': '',
   'POST': 'Post:',
+  'POST_MARKET': 'Post:',
   'POSTPOST': 'Post:',
   'CLOSED': 'After mkt:',
 };

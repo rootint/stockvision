@@ -1,11 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:stockadvisor/helpers/yahoo.dart';
 import 'package:stockadvisor/models/yahoo_models/chart_data.dart';
 
-class ChartProvider extends ChangeNotifier {
+class YahooChartProvider extends ChangeNotifier {
   static const intervalMap = {
     TickerRange.oneDay: TickerInterval.twoMinute,
     TickerRange.fiveDay: TickerInterval.fifteenMinute,
@@ -15,35 +14,27 @@ class ChartProvider extends ChangeNotifier {
     TickerRange.fiveYear: TickerInterval.fiveDay,
     TickerRange.maxRange: TickerInterval.oneMonth,
   };
+
   late StreamController<YahooHelperChartData> _chartStreamController;
   late StreamSubscription<YahooHelperChartData> _chartStreamSubscriber;
   final Map<String, Map<TickerRange, YahooHelperChartData?>?> _chartData = {};
 
-  ChartProvider() {
+  YahooChartProvider() {
     _initCacheFromMemory();
   }
 
+  // Cache handling
   void _initCacheFromMemory() {}
-
   void _loadCacheIntoMemory() {}
 
-  // Ticker Chart Stream handlers
-
-  StreamController<YahooHelperChartData> chartStreamController({
-    required String ticker,
-    required TickerRange range,
-  }) {
+  StreamController<YahooHelperChartData> chartStreamController(
+      String ticker, TickerRange range) {
     late StreamController<YahooHelperChartData> controller;
     Timer? timer;
 
     void tick() async {
-      final data = await YahooHelper.getChartData(
-          {'ticker': ticker, 'interval': intervalMap[range]!, 'range': range});
-      // final data = await compute(YahooHelper.getChartData, {
-      //   'ticker': ticker,
-      //   'interval': intervalMap[range]!,
-      //   'range': range,
-      // });
+      final data =
+          await YahooHelper.getChartData(ticker, intervalMap[range]!, range);
       controller.add(data);
     }
 
@@ -67,17 +58,18 @@ class ChartProvider extends ChangeNotifier {
     return controller;
   }
 
-  void initChartStream({required String ticker, required TickerRange range}) {
-    _chartStreamController =
-        chartStreamController(ticker: ticker, range: range);
-    _chartStreamSubscriber = _chartStreamController.stream.listen((data) {
-      if (!_chartData.containsKey(ticker)) {
-        _chartData[ticker] = {TickerRange.oneDay: null};
-      }
-      _chartData[ticker]![range] = data;
-      print('$ticker stream going....');
-      notifyListeners();
-    });
+  void initChartStream(String ticker, TickerRange range) {
+    _chartStreamController = chartStreamController(ticker, range);
+    _chartStreamSubscriber = _chartStreamController.stream.listen(
+      (data) {
+        if (!_chartData.containsKey(ticker)) {
+          _chartData[ticker] = {TickerRange.oneDay: null};
+        }
+        _chartData[ticker]![range] = data;
+        print('$ticker stream going....');
+        notifyListeners();
+      },
+    );
   }
 
   void removeChartStream() {
@@ -86,8 +78,7 @@ class ChartProvider extends ChangeNotifier {
     print('chart gone!');
   }
 
-  YahooHelperChartData getChartData(
-      {required String ticker, required TickerRange range}) {
+  YahooHelperChartData getChartData(String ticker, TickerRange range) {
     if (_chartData.containsKey(ticker) &&
         _chartData[ticker]!.containsKey(range)) {
       return _chartData[ticker]![range]!;

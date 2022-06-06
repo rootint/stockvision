@@ -90,7 +90,7 @@ class YahooHelper {
   /// price data of a ticker.
   ///
   /// Throws [Exception] if the response was faulty.
-  static Future<YahooHelperPriceData> getCurrentPrice(String ticker) async {
+  static Future<YahooHelperPriceData> getPriceData(String ticker) async {
     try {
       final response = await http
           .get(Uri.parse(apiURL + mainApiString + '?symbols=' + ticker));
@@ -153,7 +153,7 @@ class YahooHelper {
           lastDividendTimestamp: responseParsed["dividendDate"] ?? 0,
         );
       }
-      throw Exception("getCurrentPrice ${response.statusCode} Error");
+      throw Exception("getPriceData ${response.statusCode} Error");
     } catch (error) {
       rethrow;
     }
@@ -175,7 +175,7 @@ class YahooHelper {
   /// string is ~8% faster.
   ///
   /// Throws [Exception] if either Yahoo or TradingView response failed.
-  static Future<String> getIconSvg({required String ticker}) async {
+  static Future<String> getIconSvg(String ticker) async {
     try {
       String marketName = "";
       final responseYahoo = await http
@@ -253,7 +253,7 @@ class YahooHelper {
   /// Returns ticker's info [YahooHelperInfoData] for cards under the graph.
   ///
   /// Throws [Exception] if a response failed.
-  static Future<YahooHelperInfoData> getTickerInfo(String ticker) async {
+  static Future<YahooHelperInfoData> getInfoData(String ticker) async {
     try {
       final response = await http.get(Uri.parse(apiURL +
           metaApiString +
@@ -295,7 +295,7 @@ class YahooHelper {
           earningsHistory: earningsHistory,
         );
       }
-      throw Exception("getTickerInfo ${response.statusCode} Error");
+      throw Exception("getInfoData ${response.statusCode} Error");
     } catch (error) {
       rethrow;
     }
@@ -305,8 +305,7 @@ class YahooHelper {
   /// and the iconSvg)
   ///
   /// Throws [Exception] if a response failed.
-  static Future<YahooHelperMetaData> getStockMetadata(
-      {required String ticker}) async {
+  static Future<YahooHelperMetaData> getMetaData(String ticker) async {
     try {
       final response = await http.get(Uri.parse(apiURL +
           mainApiString +
@@ -320,10 +319,10 @@ class YahooHelper {
           companyLongName: responseParsed["longName"],
           exchangeName: responseParsed["fullExchangeName"],
           type: responseParsed["quoteType"],
-          iconSvg: await getIconSvg(ticker: ticker),
+          iconSvg: await getIconSvg(ticker),
         );
       }
-      throw Exception("getStockMetadata ${response.statusCode} Error");
+      throw Exception("getMetaData ${response.statusCode} Error");
     } catch (error) {
       rethrow;
     }
@@ -338,10 +337,7 @@ class YahooHelper {
   ///
   /// Throws [Exception] if a response failed.
   static Future<YahooHelperChartData> getChartData(
-      Map<String, dynamic> input) async {
-    String ticker = input['ticker']!;
-    TickerInterval interval = input['interval']!;
-    TickerRange range = input['range']!;
+      String ticker, TickerInterval interval, TickerRange range) async {
     try {
       final response = await http.get(Uri.parse(apiURL +
           chartApiString +
@@ -396,8 +392,7 @@ class YahooHelper {
     }
   }
 
-  static Future<YahooHelperSearchData> getSearchData(
-      {required String query}) async {
+  static Future<YahooHelperSearchData> getSearchData(String query) async {
     print(apiURL + searchApiString + query);
     try {
       Map<String, YahooHelperSearchItem> searchResults = {};
@@ -417,7 +412,7 @@ class YahooHelper {
         );
       }
       print('api failure');
-      final meta = await YahooHelper.getStockMetadata(ticker: query);
+      final meta = await YahooHelper.getMetaData(query);
       final result = YahooHelperSearchItem(
         exchangeName: meta.exchangeName,
         type: meta.type,

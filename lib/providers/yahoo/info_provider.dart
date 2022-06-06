@@ -1,35 +1,27 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:stockadvisor/helpers/yahoo.dart';
 import 'package:stockadvisor/models/yahoo_models/info_data.dart';
-import 'package:stockadvisor/models/yahoo_models/spark_data.dart';
 
-class InfoProvider extends ChangeNotifier {
+class YahooInfoProvider extends ChangeNotifier {
   late StreamController<YahooHelperInfoData> _streamController;
   late StreamSubscription<YahooHelperInfoData> _streamSubscriber;
   final Map<String, YahooHelperInfoData?> _infoData = {};
-  YahooHelperSparkData? _tickerGraph;
 
-  ChartProvider() {
+  YahooInfoProvider() {
     _initCacheFromMemory();
   }
 
   void _initCacheFromMemory() {}
-
   void _loadCacheIntoMemory() {}
 
-  // Ticker Info Stream handlers
-
-  StreamController<YahooHelperInfoData> _infoStreamController({
-    required String ticker,
-  }) {
+  StreamController<YahooHelperInfoData> _infoStreamController(String ticker) {
     late StreamController<YahooHelperInfoData> controller;
     Timer? timer;
 
     void tick() async {
-      final data = await YahooHelper.getTickerInfo(ticker);
+      final data = await YahooHelper.getInfoData(ticker);
       controller.add(data);
     }
 
@@ -53,36 +45,24 @@ class InfoProvider extends ChangeNotifier {
     return controller;
   }
 
-  void initInfoStream({required String ticker}) async {
-    // _tickerGraph ??= await YahooHelper.getSparkData(ticker);
-    _streamController = _infoStreamController(ticker: ticker);
-    _streamSubscriber = _streamController.stream.listen((data) {
-      _infoData[ticker] = data;
-      print('$ticker stream going....');
-      notifyListeners();
-    });
+  void initInfoStream(String ticker) async {
+    _streamController = _infoStreamController(ticker);
+    _streamSubscriber = _streamController.stream.listen(
+      (data) {
+        _infoData[ticker] = data;
+        print('$ticker stream going....');
+        notifyListeners();
+      },
+    );
   }
 
   void removeInfoStream() {
-    _tickerGraph = null;
     _streamController.close();
     _streamSubscriber.cancel();
     print('info gone!');
   }
 
-  YahooHelperSparkData getChartData({required String ticker}) {
-    if (_tickerGraph != null) {
-      return _tickerGraph!;
-    } else {
-      return YahooHelperSparkData(
-        chartPreviousClose: 0,
-        close: [],
-        firstTimestamp: 0,
-      );
-    }
-  }
-
-  YahooHelperInfoData getInfoData({required String ticker}) {
+  YahooHelperInfoData getInfoData(String ticker) {
     if (_infoData.containsKey(ticker)) {
       return _infoData[ticker]!;
     } else {
