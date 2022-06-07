@@ -1,18 +1,24 @@
 import 'dart:math';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:stockadvisor/constants.dart';
 import 'package:stockadvisor/models/server_models/prediction_ticker.dart';
-import 'package:stockadvisor/models/yahoo_models/info_data.dart';
 import 'package:stockadvisor/models/yahoo_models/price_data.dart';
 import 'package:stockadvisor/painters/analytics_painter.dart';
 import 'package:stockadvisor/painters/earnings_painter.dart';
-import 'package:stockadvisor/providers/server/prediction_provider.dart';
 import 'package:stockadvisor/providers/yahoo/info_provider.dart';
 import 'package:stockadvisor/providers/yahoo/price_provider.dart';
 import 'package:stockadvisor/screens/stock_overview/constants.dart';
 import 'package:stockadvisor/screens/stock_overview/cupertino/info_card.dart';
+import 'package:stockadvisor/screens/stock_overview/cupertino/info_cards/analytics_card.dart';
+import 'package:stockadvisor/screens/stock_overview/cupertino/info_cards/daily_change_card.dart';
+import 'package:stockadvisor/screens/stock_overview/cupertino/info_cards/dividends_card.dart';
+import 'package:stockadvisor/screens/stock_overview/cupertino/info_cards/earnings_card.dart';
+import 'package:stockadvisor/screens/stock_overview/cupertino/info_cards/holdings_add_card.dart';
+import 'package:stockadvisor/screens/stock_overview/cupertino/info_cards/prediction_card.dart';
+import 'package:stockadvisor/screens/stock_overview/cupertino/info_cards/year_change_card.dart';
 
 class CupertinoInfoRow extends StatefulWidget {
   final String ticker;
@@ -26,33 +32,12 @@ class CupertinoInfoRow extends StatefulWidget {
 }
 
 class _CupertinoInfoRowState extends State<CupertinoInfoRow> {
-  final Map<String, String> _recommendationMap = {
-    "buy": "Buy",
-    "strong_buy": "Strong Buy",
-    "hold": "Hold",
-    "sell": "Sell",
-    "strong_sell": "Strong Sell",
-  };
-
   @override
   Widget build(BuildContext context) {
-    final infoProvider = Provider.of<YahooInfoProvider>(context);
-    // final dataProvider = Provider.of<DataProvider>(context);
-    final predictionProvider = Provider.of<PredictionProvider>(context);
     final mediaQuery = MediaQuery.of(context);
-    YahooHelperInfoData tickerInfo = infoProvider.getInfoData(widget.ticker);
-    // YahooHelperSparkData tickerGraph =
-    //     infoProvider.getChartData(ticker: widget.ticker);
-    // YahooHelperSparkData sAndPGraph = dataProvider.getSAndPChart();
+    final tickerInfo = Provider.of<YahooInfoProvider>(context).getInfoData(widget.ticker);
     YahooHelperPriceData priceData =
         Provider.of<YahooPriceProvider>(context).getPriceData(widget.ticker);
-    double dayPosition = 1 -
-        (priceData.dayHigh - priceData.lastClosePrice) /
-            (priceData.dayHigh - priceData.dayLow);
-    double yearlyDelta = priceData.lastClosePrice -
-        (priceData.lastClosePrice / (1 + tickerInfo.yearChange));
-    DateTime lastDividendDate = DateTime.fromMillisecondsSinceEpoch(
-        priceData.lastDividendTimestamp * 1000);
     final Map<String, String> _infoMap = {
       "1 Year Target": tickerInfo.targetMedianPrice.toStringAsFixed(2),
       // market cap
@@ -62,570 +47,27 @@ class _CupertinoInfoRowState extends State<CupertinoInfoRow> {
       // 52 week range?
     };
 
-    bool isPredicted = false;
-    PredictionTicker? prediction;
-    double predictionDelta = 0;
-    double predictionPercent = 0;
-    double predictionPrice = 0;
-    for (var item in predictionProvider.predictions) {
-      if (item.ticker == widget.ticker) {
-        predictionPrice = item.predictedPrice;
-        isPredicted = true;
-        prediction = item;
-        predictionDelta = item.predictedPrice - priceData.lastClosePrice;
-        predictionPercent = (predictionDelta / priceData.lastClosePrice) * 100;
-        break;
-      }
-    }
-
-    List<double> earningsList = [];
-    double earningsMin = 0.0;
-    double earningsMax = 0.0;
-    if (tickerInfo.earningsHistory.length > 2) {
-      for (var item in tickerInfo.earningsHistory
-          .sublist(tickerInfo.earningsHistory.length - 2)) {
-        earningsList.add(item["estimate"]);
-        earningsList.add(item["actual"]);
-      }
-      earningsList.add(tickerInfo.currentEarningsEstimate);
-      earningsMin = earningsList.reduce(min);
-      earningsMax = earningsList.reduce(max);
-    }
+    
 
     return Column(
       children: [
-        if (isPredicted)
-          CupertinoInfoCard(
-            title: 'PREDICTION',
-            titleIcon: CupertinoIcons.eye_solid,
-            rowPosition: RowPosition.left,
-            innerHeight: 55,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 9.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Predicted ${(prediction!.atClose) ? 'at close:' : 'at open:'}',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w400,
-                      fontSize: 15,
-                    ),
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      RichText(
-                        text: TextSpan(
-                          text: predictionPrice.toStringAsFixed(2),
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
-                          ),
-                          children: const [
-                            TextSpan(
-                              text: " " + 'USD',
-                              style: TextStyle(
-                                color: CupertinoColors.inactiveGray,
-                                fontWeight: FontWeight.w500,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Text(
-                        ((predictionPercent > 0) ? '↑' : '↓') +
-                            '${predictionDelta.toStringAsFixed(2)} / ' +
-                            ((predictionPercent > 0) ? '↑' : '↓') +
-                            '${predictionPercent.abs().toStringAsFixed(2)}%',
-                        style:
-                            const TextStyle(color: kGreenColor, fontSize: 13),
-                      ),
-                    ],
-                  )
-                ],
-              ),
-            ),
-          ),
-        // CupertinoHoldingsRow(widget.ticker),
+        CupertinoInfoPredictionCard(widget.ticker, priceData),
         Row(
           children: [
-            Flexible(
-              flex: 1,
-              child: CupertinoInfoCard(
-                title: 'DAILY CHANGE',
-                titleIcon: CupertinoIcons.arrow_up_right,
-                rowPosition: RowPosition.left,
-                isSquare: true,
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 8.0, bottom: 3),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Wrap(
-                        crossAxisAlignment: WrapCrossAlignment.end,
-                        children: [
-                          Text(
-                            priceData.openPrice.toStringAsFixed(2) + ' ',
-                            style: const TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const Text(
-                            'at open',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: CupertinoColors.systemGrey2,
-                            ),
-                          )
-                        ],
-                      ),
-                      const Spacer(),
-                      Text(
-                        'Current: ' +
-                            priceData.lastClosePrice.toStringAsFixed(2),
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: CupertinoColors.systemGrey4,
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 5.0, bottom: 8.0),
-                        child: Stack(
-                          children: [
-                            Container(
-                              decoration: BoxDecoration(
-                                color: kGreenColor,
-                                borderRadius: BorderRadius.circular(10),
-                                gradient: const LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.topRight,
-                                  colors: [
-                                    kRedColor,
-                                    kGreenColor,
-                                  ],
-                                ),
-                              ),
-                              width: double.infinity,
-                              height: 7,
-                            ),
-                            Positioned(
-                              left: (mediaQuery.size.width / 2 - 50 - 12) *
-                                  dayPosition,
-                              top: -3.5,
-                              child: Container(
-                                width: 14,
-                                height: 14,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: CupertinoColors.white,
-                                  border: Border.all(
-                                    color: CupertinoColors.darkBackgroundGray,
-                                    width: 3.5,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8.0),
-                        child: Text(
-                          'Today\'s low is ${priceData.dayLow.toStringAsFixed(2)}, and high is ${priceData.dayHigh.toStringAsFixed(2)}.',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            Flexible(
-              flex: 1,
-              child: CupertinoInfoCard(
-                title: 'ADD TO HOLDINGS',
-                titleIcon: CupertinoIcons.add,
-                rowPosition: RowPosition.right,
-                isSquare: true,
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 8.0, bottom: 3.0),
-                  child: Column(
-                    children: [
-                      SizedBox(
-                        width: double.infinity,
-                        child: LayoutBuilder(
-                          builder: (context, constraints) => Container(
-                            decoration: BoxDecoration(
-                              color: kCupertinoDarkNavColor,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: kGreenColor,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  width: constraints.maxWidth / 2,
-                                  child: const Padding(
-                                    padding:
-                                        EdgeInsets.symmetric(vertical: 4.0),
-                                    child: Text(
-                                      "BUY",
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        fontSize: 17,
-                                        fontWeight: FontWeight.w600,
-                                        color: CupertinoColors.black,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      CupertinoButton(
-                        padding: EdgeInsets.zero,
-                        onPressed: () {},
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: kGreenColor,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          width: double.infinity,
-                          child: const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 4.0),
-                            child: Text(
-                              "BUY",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w600,
-                                color: CupertinoColors.black,
-                              ),
-                            ),
-                          ),
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-              ),
-            ),
+            CupertinoInfoDailyChangeCard(widget.ticker, priceData),
+            CupertinoInfoHoldingsAddCard(widget.ticker),
           ],
         ),
         Row(
           children: [
-            Flexible(
-              flex: 1,
-              child: CupertinoInfoCard(
-                title: 'ANALYTICS',
-                titleIcon: CupertinoIcons.chart_bar_alt_fill,
-                isSquare: true,
-                rowPosition: RowPosition.left,
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 8.0, bottom: 3),
-                  child: Stack(
-                    children: [
-                      Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(top: 7.0),
-                              child: Text(
-                                tickerInfo.recommendationMean
-                                    .toStringAsFixed(1),
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            Text(
-                              _recommendationMap[
-                                      tickerInfo.recommendationKey] ??
-                                  'N/A',
-                              maxLines: 1,
-                              style: const TextStyle(fontSize: 16),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Center(
-                        child: CustomPaint(
-                          painter: AnalyticsPainter(
-                            rating: (tickerInfo.recommendationMean != 0)
-                                ? tickerInfo.recommendationMean
-                                : 2.5,
-                            size: Size(mediaQuery.size.width / 2 - 36,
-                                mediaQuery.size.width / 2 - 36),
-                          ),
-                        ),
-                      ),
-                      const Positioned(
-                        bottom: 0,
-                        left: 5,
-                        child: Text(
-                          'Sell',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: CupertinoColors.systemGrey4,
-                          ),
-                        ),
-                      ),
-                      const Positioned(
-                        bottom: 0,
-                        right: 5,
-                        child: Text(
-                          'Buy',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: CupertinoColors.systemGrey4,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            Flexible(
-              flex: 1,
-              child: CupertinoInfoCard(
-                title: 'DIVIDENDS',
-                titleIcon: CupertinoIcons.creditcard_fill,
-                rowPosition: RowPosition.right,
-                isSquare: true,
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 8.0, bottom: 3),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            (priceData.trailingAnnualDividendYield * 100)
-                                    .toStringAsFixed(2) +
-                                '%',
-                            style: const TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(height: 1),
-                          if (priceData.trailingAnnualDividendRate != 0)
-                            Text(
-                              '(${priceData.trailingAnnualDividendRate.toStringAsFixed(2)} ${priceData.currency} per year)',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w400,
-                                color: CupertinoColors.systemGrey2,
-                                fontSize: 13,
-                              ),
-                            ),
-                        ],
-                      ),
-                      Text(
-                        (priceData.lastDividendTimestamp == 0 &&
-                                priceData.trailingAnnualDividendRate != 0)
-                            ? 'No data on last payout.'
-                            : (priceData.lastDividendTimestamp == 0)
-                                ? 'This company doesn\'t pay dividends.'
-                                : 'Last dividend payout was on ${DateFormat('dd MMMM, y').format(lastDividendDate)}.',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+            CupertinoInfoAnalyticsCard(widget.ticker, mediaQuery, tickerInfo),
+            CupertinoInfoDividendsCard(priceData),
           ],
         ),
         Row(
           children: [
-            Flexible(
-              flex: 1,
-              child: CupertinoInfoCard(
-                title: '52 WEEK CHANGE',
-                titleIcon: CupertinoIcons.calendar,
-                rowPosition: RowPosition.left,
-                isSquare: true,
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 8.0, bottom: 3),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            // ((tickerInfo.yearChange * 100).toStringAsFixed(2) +
-                            //     '%'),
-                            '${(tickerInfo.yearChange > 0) ? '↑' : '↓'}${(tickerInfo.yearChange.abs() * 100).toStringAsFixed(2)}%',
-                            style: const TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(height: 1),
-                          Text(
-                            '${(tickerInfo.yearChange > 0) ? '↑' : '↓'}${(yearlyDelta.abs().toStringAsFixed(2))} ${priceData.currency}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w400,
-                              color: CupertinoColors.systemGrey2,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ],
-                      ),
-                      Text(
-                        (tickerInfo.sAndPYearChange == 0)
-                            ? 'Could not load the data.'
-                            : (tickerInfo.sAndPYearChange > 0)
-                                ? 'S&P 500 rose ${(tickerInfo.sAndPYearChange.abs() * 100).toStringAsFixed(2)}%.'
-                                : 'S&P 500 fell ${(tickerInfo.sAndPYearChange.abs() * 100).toStringAsFixed(2)}%.',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            Flexible(
-              flex: 1,
-              child: CupertinoInfoCard(
-                title: "EARNINGS",
-                titleIcon: CupertinoIcons.money_dollar_circle_fill,
-                rowPosition: RowPosition.right,
-                isSquare: true,
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 12.0, bottom: 2),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      if (tickerInfo.earningsHistory.length > 2)
-                        for (var item in tickerInfo.earningsHistory
-                            .sublist(tickerInfo.earningsHistory.length - 2))
-                          Column(
-                            children: [
-                              Expanded(
-                                child: CustomPaint(
-                                  painter: EarningsPainter(
-                                    actual: item['actual'],
-                                    estimate: item['estimate'],
-                                    high: earningsMax,
-                                    low: earningsMin,
-                                    containerSize:
-                                        Size(10, mediaQuery.size.width / 5 - 5),
-                                  ),
-                                ),
-                              ),
-                              Column(
-                                children: [
-                                  const SizedBox(height: 5),
-                                  Text(
-                                    item["quarter"].toString(),
-                                    style: const TextStyle(fontSize: 11),
-                                  ),
-                                  Text(
-                                    item["year"].toString(),
-                                    style: const TextStyle(fontSize: 11),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  (item["actual"] - item["estimate"] > 0)
-                                      ? Text(
-                                          '+' +
-                                              ((item["actual"] -
-                                                      item["estimate"]))
-                                                  .toStringAsFixed(2),
-                                          style: const TextStyle(
-                                            fontSize: 11,
-                                            color: kGreenColor,
-                                          ),
-                                        )
-                                      : Text(
-                                          ((item["actual"] - item["estimate"]))
-                                              .toStringAsFixed(2),
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            color: (item["actual"] ==
-                                                    item["estimate"])
-                                                ? CupertinoColors.systemGrey4
-                                                : kRedColor,
-                                          ),
-                                        )
-                                ],
-                              ),
-                            ],
-                          ),
-                      if (tickerInfo.earningsHistory.length > 2)
-                        Column(
-                          children: [
-                            Expanded(
-                              child: CustomPaint(
-                                painter: EarningsPainter(
-                                  actual: 0.0,
-                                  estimate: tickerInfo.currentEarningsEstimate,
-                                  high: earningsMax,
-                                  low: earningsMin,
-                                  current: true,
-                                  containerSize:
-                                      Size(10, mediaQuery.size.width / 5 - 5),
-                                ),
-                              ),
-                            ),
-                            Column(
-                              children: [
-                                const SizedBox(height: 5),
-                                Text(
-                                  'Q' + tickerInfo.currentEarningsQuarter[0],
-                                  style: const TextStyle(fontSize: 11),
-                                ),
-                                Text(
-                                  tickerInfo.currentEarningsYear.toString(),
-                                  style: const TextStyle(fontSize: 11),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  (tickerInfo.currentEarningsTimestamp == 0)
-                                      ? '-'
-                                      : DateFormat('d MMM').format(DateTime
-                                          .fromMillisecondsSinceEpoch(1000 *
-                                              tickerInfo
-                                                  .currentEarningsTimestamp)),
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    color: CupertinoColors.systemGrey4,
-                                  ),
-                                )
-                              ],
-                            ),
-                          ],
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+            CupertinoInfoYearChangeCard(tickerInfo, priceData),
+            CupertinoInfoEarningsCard(tickerInfo, mediaQuery),
             // Flexible(
             //   flex: 1,
             //   child: CupertinoInfoCard(

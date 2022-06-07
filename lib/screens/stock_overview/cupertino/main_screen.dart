@@ -28,6 +28,7 @@ class CupertinoStockOverviewMainScreenState
     with TickerProviderStateMixin {
   bool streamsInitialized = false;
   final scrollController = ScrollController();
+  final _mainScrollController = ScrollController();
 
   Color getColorByPercentage(double percentage) {
     if (percentage == 0) return CupertinoColors.systemGrey4;
