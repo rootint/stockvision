@@ -3,15 +3,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:stockadvisor/constants.dart';
-import 'package:stockadvisor/models/server_models/prediction_ticker.dart';
 import 'package:stockadvisor/models/yahoo_models/price_data.dart';
-import 'package:stockadvisor/painters/analytics_painter.dart';
-import 'package:stockadvisor/painters/earnings_painter.dart';
+import 'package:stockadvisor/providers/server/holdings_provider.dart';
 import 'package:stockadvisor/providers/yahoo/info_provider.dart';
 import 'package:stockadvisor/providers/yahoo/price_provider.dart';
-import 'package:stockadvisor/screens/stock_overview/constants.dart';
-import 'package:stockadvisor/screens/stock_overview/cupertino/info_card.dart';
 import 'package:stockadvisor/screens/stock_overview/cupertino/info_cards/analytics_card.dart';
 import 'package:stockadvisor/screens/stock_overview/cupertino/info_cards/daily_change_card.dart';
 import 'package:stockadvisor/screens/stock_overview/cupertino/info_cards/dividends_card.dart';
@@ -35,7 +30,9 @@ class _CupertinoInfoRowState extends State<CupertinoInfoRow> {
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
-    final tickerInfo = Provider.of<YahooInfoProvider>(context).getInfoData(widget.ticker);
+    final holdingsProvider = Provider.of<HoldingsProvider>(context);
+    final tickerInfo =
+        Provider.of<YahooInfoProvider>(context).getInfoData(widget.ticker);
     YahooHelperPriceData priceData =
         Provider.of<YahooPriceProvider>(context).getPriceData(widget.ticker);
     final Map<String, String> _infoMap = {
@@ -45,9 +42,7 @@ class _CupertinoInfoRowState extends State<CupertinoInfoRow> {
       // volumes
       // beta / eps
       // 52 week range?
-    };
-
-    
+    }; 
 
     return Column(
       children: [
@@ -55,7 +50,7 @@ class _CupertinoInfoRowState extends State<CupertinoInfoRow> {
         Row(
           children: [
             CupertinoInfoDailyChangeCard(widget.ticker, priceData),
-            CupertinoInfoHoldingsAddCard(widget.ticker),
+            CupertinoInfoHoldingsAddCard(widget.ticker, holdingsProvider),
           ],
         ),
         Row(
@@ -106,165 +101,19 @@ class _CupertinoInfoRowState extends State<CupertinoInfoRow> {
           ],
         ),
         const Center(
-            child: Padding(
-          padding: EdgeInsets.only(top: 20.0, bottom: 10.0),
-          child: Text(
-            'This is not financial advice. \nStock information might be delayed.',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 13),
+          child: Padding(
+            padding: EdgeInsets.only(top: 20.0, bottom: 10.0),
+            child: Text(
+              'This is not financial advice. \nStock information might be delayed.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13),
+            ),
           ),
-        )),
+        ),
       ],
     );
   }
 }
-
-// CupertinoInfoCard(
-//   height: 200,
-//   title: "PRICE RANGES",
-//   titleIcon: CupertinoIcons.graph_square_fill,
-//   rowPosition: RowPosition.left,
-//   child: Padding(
-//     padding: const EdgeInsets.symmetric(vertical: 5.0),
-//     child: Column(
-//       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//       crossAxisAlignment: CrossAxisAlignment.start,
-//       children: [
-//         Column(
-//           children: [
-//             Padding(
-//               padding: const EdgeInsets.symmetric(vertical: 5.0),
-//               child: Column(
-//                 crossAxisAlignment: CrossAxisAlignment.start,
-//                 children: [
-//                   const Text(
-//                     'Day Range',
-//                     style: TextStyle(fontSize: 16),
-//                   ),
-//                   Padding(
-//                     padding:
-//                         const EdgeInsets.only(top: 10.0, bottom: 4.0),
-//                     child: Stack(
-//                       children: [
-//                         Container(
-//                           decoration: BoxDecoration(
-//                               color: kGreenColor,
-//                               borderRadius: BorderRadius.circular(10),
-//                               gradient: const LinearGradient(
-//                                 begin: Alignment.topLeft,
-//                                 end: Alignment.topRight,
-//                                 colors: [
-//                                   kRedColor,
-//                                   kGreenColor,
-//                                 ],
-//                               )),
-//                           width: double.infinity,
-//                           height: 7,
-//                         ),
-//                         Positioned(
-//                           left: (mediaQuery.size.width - 50 - 12) *
-//                               dayPosition,
-//                           top: -3.5,
-//                           child: Container(
-//                             width: 14,
-//                             height: 14,
-//                             decoration: BoxDecoration(
-//                               shape: BoxShape.circle,
-//                               color: CupertinoColors.white,
-//                               border: Border.all(
-//                                 color:
-//                                     CupertinoColors.darkBackgroundGray,
-//                                 width: 3.5,
-//                               ),
-//                             ),
-//                           ),
-//                         ),
-//                       ],
-//                     ),
-//                   ),
-//                   Row(
-//                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                     children: [
-//                       Text(priceData.dayLow.toStringAsFixed(2)),
-//                       Text(priceData.lastClosePrice.toStringAsFixed(2)),
-//                       Text(priceData.dayHigh.toStringAsFixed(2)),
-//                     ],
-//                   ),
-//                 ],
-//               ),
-//             ),
-//           ],
-//         ),
-//         Column(
-//           children: [
-//             Padding(
-//               padding: const EdgeInsets.symmetric(vertical: 5.0),
-//               child: Column(
-//                 crossAxisAlignment: CrossAxisAlignment.start,
-//                 children: [
-//                   const Text(
-//                     'Year Range',
-//                     style: TextStyle(fontSize: 16),
-//                   ),
-//                   Padding(
-//                     padding:
-//                         const EdgeInsets.only(top: 10.0, bottom: 4.0),
-//                     child: Stack(
-//                       children: [
-//                         Container(
-//                           decoration: BoxDecoration(
-//                               color: kGreenColor,
-//                               borderRadius: BorderRadius.circular(10),
-//                               gradient: const LinearGradient(
-//                                 begin: Alignment.topLeft,
-//                                 end: Alignment.topRight,
-//                                 colors: [
-//                                   kRedColor,
-//                                   kGreenColor,
-//                                 ],
-//                               )),
-//                           width: double.infinity,
-//                           height: 7,
-//                         ),
-//                         Positioned(
-//                           left: (mediaQuery.size.width - 50 - 12) *
-//                               yearPosition,
-//                           top: -3.5,
-//                           child: Container(
-//                             width: 14,
-//                             height: 14,
-//                             decoration: BoxDecoration(
-//                               shape: BoxShape.circle,
-//                               color: CupertinoColors.white,
-//                               border: Border.all(
-//                                 color:
-//                                     CupertinoColors.darkBackgroundGray,
-//                                 width: 3.5,
-//                               ),
-//                             ),
-//                           ),
-//                         ),
-//                       ],
-//                     ),
-//                   ),
-//                   Row(
-//                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                     children: [
-//                       Text(priceData.fiftyTwoWeekLow.toStringAsFixed(2)),
-//                       Text(priceData.lastClosePrice.toStringAsFixed(2)),
-//                       Text(priceData.fiftyTwoWeekHigh.toStringAsFixed(2)),
-//                     ],
-//                   ),
-//                 ],
-//               ),
-//             ),
-//           ],
-//         ),
-//       ],
-//     ),
-//   ),
-// ),
-
 // CupertinoInfoCard(
 //   title: "52 WEEK PERFORMANCE",
 //   titleIcon: CupertinoIcons.graph_square_fill,

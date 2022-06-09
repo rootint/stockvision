@@ -1,11 +1,18 @@
 import 'package:flutter/cupertino.dart';
+import 'package:provider/provider.dart';
 import 'package:stockadvisor/constants.dart';
+import 'package:stockadvisor/models/server_models/holdings_ticker.dart';
+import 'package:stockadvisor/providers/server/holdings_provider.dart';
+import 'package:stockadvisor/providers/yahoo/price_provider.dart';
 import 'package:stockadvisor/screens/stock_overview/constants.dart';
 import 'package:stockadvisor/screens/stock_overview/cupertino/info_card.dart';
 
 class CupertinoInfoHoldingsAddCard extends StatefulWidget {
   final String ticker;
-  const CupertinoInfoHoldingsAddCard(this.ticker, {Key? key}) : super(key: key);
+  final HoldingsProvider holdingsProvider;
+  const CupertinoInfoHoldingsAddCard(this.ticker, this.holdingsProvider,
+      {Key? key})
+      : super(key: key);
 
   @override
   State<CupertinoInfoHoldingsAddCard> createState() =>
@@ -15,11 +22,77 @@ class CupertinoInfoHoldingsAddCard extends StatefulWidget {
 class _CupertinoInfoHoldingsAddCardState
     extends State<CupertinoInfoHoldingsAddCard> {
   bool isBuySelected = true;
+  bool isInitialized = false;
+  double priceSelected = 0.0;
+  int amountSelected = 1;
   final priceController = TextEditingController();
   final amountController = TextEditingController();
 
+  void _onBuySellButtonPress(BuildContext context) {
+    FocusManager.instance.primaryFocus?.unfocus();
+    if (amountSelected == 0) {
+      _showAmountZeroDialog(context);
+      return;
+    }
+    if (widget.holdingsProvider.containsTicker(widget.ticker)) {
+      widget.holdingsProvider.updateTicker(
+        data: HoldingsTicker(
+          ticker: widget.ticker,
+          amount: amountSelected,
+          avgShareCost: priceSelected,
+        ),
+      );
+    } else {
+      widget.holdingsProvider.addTicker(
+        data: HoldingsTicker(
+          ticker: widget.ticker,
+          amount: amountSelected,
+          avgShareCost: priceSelected,
+        ),
+      );
+    }
+    setState(() {
+      priceSelected = Provider.of<YahooPriceProvider>(context, listen: false)
+          .getPriceData(widget.ticker)
+          .currentMarketPrice;
+      amountSelected = 1;
+      amountController.text = amountSelected.toString();
+      priceController.text = priceSelected.toStringAsFixed(2);
+    });
+  }
+
+  void _showAmountZeroDialog(BuildContext context) {
+    showCupertinoModalPopup<void>(
+      context: context,
+      builder: (BuildContext context) => CupertinoAlertDialog(
+        title: const Text('Error'),
+        content: const Text(
+          'Please select an amount of shares that is greater than zero.',
+          style: TextStyle(fontSize: 14),
+        ),
+        actions: <CupertinoDialogAction>[
+          CupertinoDialogAction(
+            isDefaultAction: true,
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text('Got it!'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (!isInitialized) {
+      priceSelected = Provider.of<YahooPriceProvider>(context, listen: false)
+          .getPriceData(widget.ticker)
+          .currentMarketPrice;
+      priceController.text = priceSelected.toStringAsFixed(2);
+      amountController.text = amountSelected.toString();
+      isInitialized = true;
+    }
     return Flexible(
       flex: 1,
       child: CupertinoInfoCard(
@@ -49,6 +122,7 @@ class _CupertinoInfoHoldingsAddCardState
                               setState(() {
                                 isBuySelected = true;
                               });
+                              FocusManager.instance.primaryFocus?.unfocus();
                             },
                             child: Container(
                               decoration: BoxDecoration(
@@ -80,6 +154,7 @@ class _CupertinoInfoHoldingsAddCardState
                               setState(() {
                                 isBuySelected = false;
                               });
+                              FocusManager.instance.primaryFocus?.unfocus();
                             },
                             child: Container(
                               decoration: BoxDecoration(
@@ -112,40 +187,55 @@ class _CupertinoInfoHoldingsAddCardState
                   },
                 ),
               ),
-              // Column(
-              //   children: [
-              //     Row(
-              //       mainAxisAlignment: MainAxisAlignment.spaceAround,
-              //       children: [
-              //         Text('Price'),
-              //         Text('Amount'),
-              //       ],
-              //     ),
-              //     LayoutBuilder(
-              //       builder: (context, constraints) => Row(
-              //         children: [
-              //           CupertinoTextField(),
-              //           CupertinoTextField(),
-              //         ],
-              //       ),
-              //     ),
-              //   ],
-              // ),
               Column(
                 children: [
-                  // CupertinoTextFieldWithButtons(
-                  //     placeholder: 'Price',
-                  //     controller: priceController),
-                  // const SizedBox(height: 4),
-                  // CupertinoTextFieldWithButtons(
-                  //     placeholder: 'Amount',
-                  //     controller: amountController),
+                  CupertinoTextFieldWithButtons(
+                    onPlusPress: () {
+                      setState(() {
+                        priceSelected += 1;
+                        priceController.text = priceSelected.toStringAsFixed(2);
+                      });
+                      FocusManager.instance.primaryFocus?.unfocus();
+                    },
+                    onMinusPress: () {
+                      setState(() {
+                        if (priceSelected >= 1) {
+                          priceSelected -= 1;
+                          priceController.text =
+                              priceSelected.toStringAsFixed(2);
+                        }
+                      });
+                      FocusManager.instance.primaryFocus?.unfocus();
+                    },
+                    placeholder: priceSelected.toStringAsFixed(2),
+                    controller: priceController,
+                  ),
+                  const SizedBox(height: 4),
+                  CupertinoTextFieldWithButtons(
+                    onPlusPress: () {
+                      setState(() {
+                        amountSelected += 1;
+                        print(amountSelected);
+                        amountController.text = amountSelected.toString();
+                      });
+                      FocusManager.instance.primaryFocus?.unfocus();
+                    },
+                    onMinusPress: () {
+                      setState(() {
+                        if (amountSelected >= 1) {
+                          amountSelected -= 1;
+                          amountController.text = amountSelected.toString();
+                        }
+                        FocusManager.instance.primaryFocus?.unfocus();
+                      });
+                    },
+                    placeholder: amountSelected.toString(),
+                    controller: amountController,
+                  ),
                 ],
               ),
               ProperButton(
-                onPressed: () {
-                  print('$isBuySelected');
-                },
+                onPressed: () => _onBuySellButtonPress(context),
                 child: Container(
                   decoration: BoxDecoration(
                     color: isBuySelected ? kGreenColor : kRedColor,
@@ -209,7 +299,7 @@ class _CupertinoTextFieldWithButtonsState
           Flexible(
             flex: 1,
             child: GestureDetector(
-              onTap: widget.onPlusPress,
+              onTap: widget.onMinusPress,
               child: const Center(
                 child: Icon(
                   CupertinoIcons.minus,
@@ -236,7 +326,7 @@ class _CupertinoTextFieldWithButtonsState
           Flexible(
             flex: 1,
             child: GestureDetector(
-              onTap: widget.onMinusPress,
+              onTap: widget.onPlusPress,
               child: const Center(
                 child: Icon(
                   CupertinoIcons.add,

@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 class WatchlistProvider extends ChangeNotifier {
   List<String> _watchlist = [
     'aapl',
+    'brk-a',
     'amd',
     'nvda',
     'bmw.de',

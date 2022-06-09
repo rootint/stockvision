@@ -34,20 +34,8 @@ class HoldingsProvider with ChangeNotifier {
     //     HoldingsTicker(ticker: 'sber.me', amount: 30, avgShareCost: 139.65),
   };
 
-  // DataProvider _data;
   late Holdings _holdings;
-  // final Holdings _holdings = Holdings(
-  //   tickerList: [],
-  //   deltaAlltime: 0,
-  //   currentWorth: 0,
-  //   deltaAlltimePercent: 0,
-  //   deltaToday: 0,
-  //   deltaTodayPercent: 0,
-  // );
 
-  // HoldingsProvider(this._data) {
-  //   initHoldingsData();
-  // }
   HoldingsProvider() {
     initHoldingsData();
   }
@@ -81,35 +69,7 @@ class HoldingsProvider with ChangeNotifier {
   }
 
   void initHoldingsData() async {
-    // _holdingsList = await ...
-    // send an authenticated request to the server
-    // by user id or anything
-    // and get the list of holdings
-    // double deltaToday = 0.0;
-    // double deltaTodayPercent = 0.0;
-    // double deltaAlltime = 0.0;
-    // double deltaAlltimePercent = 0.0;
-    // double currentWorth = 0.0;
-    // double overallBuyPrice = 0.0;
-    // double onMarketOpenWorth = 0.0;
-    // _holdingsList.forEach((key, value) {
-    //   currentWorth += _data.getPriceData(ticker: key).currentMarketPrice;
-    //   onMarketOpenWorth += _data.getPriceData(ticker: key).lastClosePrice;
-    //   overallBuyPrice += value.avgShareCost;
-    // });
-    // deltaAlltime = currentWorth - overallBuyPrice;
-    // deltaAlltimePercent = currentWorth / overallBuyPrice * 100 - 100;
-    // deltaToday = currentWorth - onMarketOpenWorth;
-    // deltaTodayPercent = currentWorth / onMarketOpenWorth * 100 - 100;
-
-    // _holdings = Holdings(
-    //   tickerList: _holdingsList.values.toList(),
-    //   currentWorth: currentWorth,
-    //   deltaAlltime: deltaAlltime,
-    //   deltaAlltimePercent: deltaAlltimePercent,
-    //   deltaToday: deltaToday,
-    //   deltaTodayPercent: deltaTodayPercent,
-    // );
+    
   }
 
   void addTicker({required HoldingsTicker data}) {
